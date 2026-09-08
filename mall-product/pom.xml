@@ -9,7 +9,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>mall-project</artifactId>
+    <artifactId>mall-product</artifactId>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -23,6 +23,10 @@
             <artifactId>mall-common</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        <!-- 服务注册 -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
     </dependencies>
-
 </project>

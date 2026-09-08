@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // const baseURL = 'http://localhost:8080'
-const baseURL = '/api/admin'
+const baseURL = '/api'
 //这个request和axios具有相同的功能
 const request = axios.create({baseURL})
 

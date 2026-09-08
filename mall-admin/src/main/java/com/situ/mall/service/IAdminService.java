@@ -1,7 +1,9 @@
 package com.situ.mall.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.situ.mall.pojo.entity.Admin;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.situ.mall.pojo.query.AdminQuery;
 
 /**
  * <p>
@@ -13,4 +15,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IAdminService extends IService<Admin> {
 
+    IPage<Admin> list(AdminQuery adminQuery);
+
+    void add(Admin admin);
 }

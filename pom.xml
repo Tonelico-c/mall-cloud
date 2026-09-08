@@ -11,7 +11,8 @@
     <modules>
         <module>mall-common</module>
         <module>mall-admin</module>
-        <module>mall-project</module>
+        <module>mall-product</module>
+        <module>mall-category</module>
     </modules>
 
     <!-- 指定父工程 -->
