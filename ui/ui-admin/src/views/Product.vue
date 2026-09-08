@@ -1,26 +1,24 @@
 <script setup>
-  import adminApi from '@/api/admin.js'
+  import productApi from '@/api/product.js'
   import {ref} from 'vue'
   import {ElMessage, ElMessageBox} from 'element-plus'
   import {Delete, Edit, Plus, Search, Refresh} from '@element-plus/icons-vue'
+  import {useTokenStore} from '@/store/token.js'
+  const tokenStore = useTokenStore();
 
   //表格数据
   const list = ref([])
   const total = ref(0)
   //分页信息和搜索条件
-  const adminQuery = ref({
+  const productQuery = ref({
     name: '',
-    email: '',
+    subtitle: '',
     page: 1,
     limit: 10
   })
 
-  // 时间范围
-  const createTimeRange = ref([])
   const loadData = () => {
-    adminQuery.value.beginCreateTime = createTimeRange.value?.[0];
-    adminQuery.value.endCreateTime = createTimeRange.value?.[1];
-    adminApi.list(adminQuery.value).then(result => {
+    productApi.list(productQuery.value).then(result => {
       list.value = result.data.records
       total.value = result.data.total
     })
@@ -29,14 +27,13 @@
   loadData()
 
   const onSearch = () => {
-    adminQuery.value.page = 1
+    productQuery.value.page = 1
     loadData()
   }
   const resetSearch = () => {
-    createTimeRange.value = []
-    adminQuery.value = {
+    productQuery.value = {
       name: '',
-      email: '',
+      subtitle: '',
       page: 1,
       limit: 10
     }
@@ -55,7 +52,7 @@
           lockScroll: false //防止抖动
         }
     ).then(() => {
-      adminApi.deleteById(id).then(result => {
+      productApi.deleteById(id).then(result => {
         if (result.code === 1) {
           ElMessage.success(result.msg)
           loadData()
@@ -86,7 +83,7 @@
           lockScroll: false //防止抖动
         }
     ).then(() => {
-      adminApi.deleteAll(ids).then(result => {
+      productApi.deleteAll(ids).then(result => {
         if (result.code === 1) {
           ElMessage.success(result.msg)
           loadData()
@@ -99,27 +96,27 @@
 
   //添加、编辑
   const dialogFormVisible = ref(false)
-  const admin = ref({})
+  const product = ref({})
   const title = ref()
 
   const showAddDialog = () => {
     dialogFormVisible.value = true
     title.value = '添加'
-    admin.value = {}
+    product.value = {status: 1}
   }
 
   const showUpdateDialog = (id) => {
     dialogFormVisible.value = true
     title.value = '编辑'
-    admin.value = {}
-    adminApi.selectById(id).then(result => {
-      admin.value = result.data
+    product.value = {}
+    productApi.selectById(id).then(result => {
+      product.value = result.data
     })
   }
 
   const addOrUpdate = () => {
-    if (admin.value.id) {//编辑
-      adminApi.update(admin.value.id, admin.value).then(result => {
+    if (product.value.id) {//编辑
+      productApi.update(product.value.id, product.value).then(result => {
         if (result.code === 1) {
           ElMessage.success(result.msg)
           dialogFormVisible.value = false
@@ -129,7 +126,7 @@
         }
       })
     } else {//添加
-      adminApi.add(admin.value).then(result => {
+      productApi.add(product.value).then(result => {
         if (result.code === 1) {
           ElMessage.success(result.msg)
           dialogFormVisible.value = false
@@ -141,55 +138,36 @@
     }
   }
 
-  // 状态切换
-  const handleSwitchChange = (row) => {
-    const data = {}
-    data.id = row.id
-    data.status = row.status
-    adminApi.update(data.id, data).then(result => {
-      if (result.code === 1) {
-        ElMessage.success(result.msg)
-        loadData()
-      } else {
-        ElMessage.error(result.msg)
-      }
-    })
+  // 主图上传成功
+  const handleMainImageSuccess = (result) => {
+    if (result.code === 1) {
+      product.value.mainImage = result.data
+    } else {
+      ElMessage.error(result.msg)
+    }
   }
-
-  // 角色显示
-  const roleText = (role) => (role === 0 ? '管理员' : '普通用户')
 </script>
 
 <template>
   <el-card class="">
     <template #header>
       <el-form :inline="true" class="search-form" @submit.prevent>
-        <el-form-item label="用户名">
+        <el-form-item label="商品名称">
           <el-input
-              v-model="adminQuery.name"
-              placeholder="请输入用户名"
+              v-model="productQuery.name"
+              placeholder="请输入商品名称"
               clearable
               style="width: 220px"
               @keyup.enter="onSearch"
           />
         </el-form-item>
-        <el-form-item label="邮箱">
+        <el-form-item label="副标题">
           <el-input
-              v-model="adminQuery.email"
-              placeholder="请输入邮箱"
+              v-model="productQuery.subtitle"
+              placeholder="请输入副标题"
               clearable
               style="width: 220px"
               @keyup.enter="onSearch"
-          />
-        </el-form-item>
-        <el-form-item label="创建时间">
-          <el-date-picker
-              v-model="createTimeRange"
-              type="datetimerange"
-              value-format="YYYY-MM-DD HH:mm:ss"
-              range-separator="至"
-              start-placeholder="开始时间"
-              end-placeholder="结束时间"
           />
         </el-form-item>
         <el-form-item>
@@ -204,36 +182,26 @@
     </div>
     <el-table :data="list" border style="width: 100%" show-overflow-tooltip @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />
-      <el-table-column fixed prop="id" label="ID" width="80"/>
-      <el-table-column prop="avatar" label="头像" width="100">
+      <el-table-column fixed prop="id" label="ID" width="100"/>
+      <el-table-column prop="mainImage" label="主图" width="100">
         <template #default="{row}">
-          <img :src="row.avatar" alt="头像" class="table-avatar" v-if="row.avatar"/>
+          <img :src="row.mainImage" alt="主图" class="table-image" v-if="row.mainImage"/>
         </template>
       </el-table-column>
-      <el-table-column prop="name" label="用户名" width="150"/>
-      <el-table-column prop="email" label="邮箱" width="200"/>
-      <el-table-column prop="phone" label="电话" width="200"/>
-      <el-table-column prop="role" label="角色" width="120">
-        <template #default="{row}">
-          <el-tag :type="row.role === 0 ? 'danger' : 'info'">{{ roleText(row.role) }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="status" label="状态" width="100">
-        <template #default="{row}">
-          <el-switch
-              v-model="row.status"
-              style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
-              :active-value="1"
-              :inactive-value="0"
-              inline-prompt
-              active-text="正常"
-              inactive-text="停用"
-              @change="handleSwitchChange(row)"
-          />
+      <el-table-column prop="name" label="商品名称" width="180"/>
+      <el-table-column prop="subtitle" label="副标题" width="200"/>
+      <el-table-column prop="categoryId" label="分类ID" width="100"/>
+      <el-table-column prop="price" label="价格(元)" width="120"/>
+      <el-table-column prop="stock" label="库存" width="100"/>
+      <el-table-column prop="status" label="状态">
+        <template #default="{ row }">
+          <el-tag :type="row.status === 1 ? 'success' : 'info'">
+            {{ row.status === 1 ? '在售' : '下架' }}
+          </el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="创建时间" width="200"/>
-      <el-table-column align="center" width="250" fixed="right" labe="操作">
+      <el-table-column align="center" width="200" fixed="right" label="操作">
         <template #default="{ row }">
           <el-button size="small" type="primary" :icon="Edit" @click="showUpdateDialog(row.id)">编辑</el-button>
           <el-button size="small" type="danger" :icon="Delete" @click="deleteById(row.id)">删除</el-button>
@@ -242,8 +210,8 @@
     </el-table>
     <div class="pagination-wrapper">
       <el-pagination
-          v-model:current-page="adminQuery.page"
-          v-model:page-size="adminQuery.limit"
+          v-model:current-page="productQuery.page"
+          v-model:page-size="productQuery.limit"
           :page-sizes="[10, 20, 30, 40]"
           layout="total, sizes, prev, pager, next, jumper"
           :total="total"
@@ -253,34 +221,49 @@
   </el-card>
   <!--添加、编辑弹出框-->
   <el-dialog v-model="dialogFormVisible" :title="title" width="500" :lock-scroll="false" :close-on-click-modal="false">
-    <el-form :model="admin">
-      <el-form-item label="用户名" :label-width="80">
-        <el-input v-model="admin.name" autocomplete="off" />
+    <el-form :model="product">
+      <el-form-item label="商品名称" :label-width="80">
+        <el-input v-model="product.name" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="密码" :label-width="80">
-        <el-input v-model="admin.password" type="password" show-password
-                  :placeholder="admin.id ? '不修改请留空' : '请输入密码'" autocomplete="new-password" />
+      <el-form-item label="副标题" :label-width="80">
+        <el-input v-model="product.subtitle" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="邮箱" :label-width="80">
-        <el-input v-model="admin.email" autocomplete="off" />
+      <el-form-item label="分类ID" :label-width="80">
+        <el-input-number v-model="product.categoryId" :min="1" controls-position="right" style="width: 100%"/>
       </el-form-item>
-      <el-form-item label="手机号" :label-width="80">
-        <el-input v-model="admin.phone" autocomplete="off" />
+      <el-form-item label="价格(元)" :label-width="80">
+        <el-input-number v-model="product.price" :min="0" :precision="2" :step="0.01" controls-position="right" style="width: 100%"/>
       </el-form-item>
-      <el-form-item label="角色" :label-width="80">
-        <el-select v-model="admin.role" placeholder="请选择角色" style="width: 100%">
-          <el-option label="管理员" :value="0" />
-          <el-option label="普通用户" :value="1" />
-        </el-select>
+      <el-form-item label="库存" :label-width="80">
+        <el-input-number v-model="product.stock" :min="0" :step="1" controls-position="right" style="width: 100%"/>
       </el-form-item>
       <el-form-item label="状态" :label-width="80">
         <el-switch
-            v-model="admin.status"
+            v-model="product.status"
             :active-value="1"
             :inactive-value="0"
-            active-text="正常"
-            inactive-text="停用"
+            active-text="在售"
+            inactive-text="下架"
         />
+      </el-form-item>
+      <el-form-item label="主图" :label-width="80">
+        <el-upload
+            class="image-uploader"
+            action="/api/upload"
+            :show-file-list="false"
+            :on-success="handleMainImageSuccess"
+            :headers="{Authorization: tokenStore.token}"
+            name="file"
+            accept="image/*"
+        >
+          <img v-if="product.mainImage" :src="product.mainImage" class="image"/>
+          <el-icon v-else class="image-uploader-icon">
+            <Plus/>
+          </el-icon>
+        </el-upload>
+      </el-form-item>
+      <el-form-item label="商品详情" :label-width="80">
+        <el-input v-model="product.detail" type="textarea" :rows="4" autocomplete="off" />
       </el-form-item>
     </el-form>
     <template #footer>
@@ -319,12 +302,40 @@
   margin-top: 16px;
 }
 
-.table-avatar {
+.table-image {
   width: 50px;
   height: 50px;
   display: block;
-  border-radius: 50%;
+  border-radius: 4px;
   object-fit: cover;
   margin: 0 auto;
+}
+
+.image-uploader .image {
+  width: 178px;
+  height: 178px;
+  display: block;
+  object-fit: cover;
+}
+
+.image-uploader .el-upload {
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration-fast);
+}
+
+.image-uploader .el-upload:hover {
+  border-color: var(--el-color-primary);
+}
+
+.el-icon.image-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  text-align: center;
 }
 </style>

@@ -17,6 +17,12 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      // 商品服务在 8082，需放在通用 /api 规则之前
+      '/api/products': {
+        target: 'http://localhost:8082',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
       '/api': {
         target: 'http://localhost:8081',
         changeOrigin: true,

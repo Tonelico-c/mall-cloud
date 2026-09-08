@@ -1,7 +1,9 @@
 package com.situ.mall.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.situ.mall.pojo.entity.Product;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.situ.mall.pojo.query.ProductQuery;
 
 /**
  * <p>
@@ -13,4 +15,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IProductService extends IService<Product> {
 
+    IPage<Product> list(ProductQuery productQuery);
 }

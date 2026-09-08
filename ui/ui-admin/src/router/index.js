@@ -5,6 +5,7 @@ import {createRouter, createWebHistory} from 'vue-router'
 import Index from '@/views/Index.vue'
 import Login from '@/views/Login.vue'
 import Admin from '@/views/Admin.vue'
+import Product from '@/views/Product.vue'
 
 
 
@@ -15,7 +16,8 @@ const router = createRouter({
         {path: '/login', component: Login},
         {
             path: '/', component: Index, children: [
-                {path: '/admin', component: Admin}
+                {path: '/admin', component: Admin},
+                {path: '/product', component: Product}
             ]
         }
     ]
