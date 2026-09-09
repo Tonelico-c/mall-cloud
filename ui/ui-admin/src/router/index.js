@@ -4,9 +4,9 @@ import {createRouter, createWebHistory} from 'vue-router'
 // 引入一个一个可能要呈现组件
 import Index from '@/views/Index.vue'
 import Login from '@/views/Login.vue'
-import Admin from '@/views/Admin.vue'
-import Product from '@/views/Product.vue'
-
+import Admin from '@/views/admin/Admin.vue'
+import Product from '@/views/product/Product.vue'
+import Category from '@/views/category/Category.vue';
 
 
 //创建路由器
@@ -17,7 +17,8 @@ const router = createRouter({
         {
             path: '/', component: Index, children: [
                 {path: '/admin', component: Admin},
-                {path: '/product', component: Product}
+                {path: '/product', component: Product},
+                {path: '/category', component: Category},
             ]
         }
     ]

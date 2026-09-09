@@ -14,7 +14,7 @@
   //条目被点击后,调用的函数
   import {useRouter} from 'vue-router'
   const router = useRouter();
-  import adminApi from "@/api/admin.js";
+  import adminApi from "@/api/admin/admin.js";
   import {useTokenStore} from '@/store/token.js'
   const tokenStore = useTokenStore();
   import {useAdminInfoStore} from '@/store/adminInfo.js'

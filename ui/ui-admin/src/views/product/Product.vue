@@ -1,9 +1,10 @@
 <script setup>
-  import productApi from '@/api/product.js'
+  import productApi from '@/api/product/product.js'
   import {ref} from 'vue'
   import {ElMessage, ElMessageBox} from 'element-plus'
   import {Delete, Edit, Plus, Search, Refresh} from '@element-plus/icons-vue'
   import {useTokenStore} from '@/store/token.js'
+  import categoryApi from "@/api/category/category.js";
   const tokenStore = useTokenStore();
 
   //表格数据
@@ -146,6 +147,31 @@
       ElMessage.error(result.msg)
     }
   }
+
+  //分类下拉框数据（树形结构），商品对应一个二级分类
+  const categoryTree = ref([])
+  const categoryProps = {
+    value: 'id',
+    label: 'name',
+    children: 'children',
+    //只选中最后一级（二级分类）的id，v-model直接绑定categoryId
+    emitPath: false
+  }
+  categoryApi.tree().then(result => {
+    //删除空的children，让二级分类成为级联选择器的叶子节点
+    const removeEmptyChildren = (categoryList) => {
+      categoryList.forEach(category => {
+        if (category.children && category.children.length > 0) {
+          removeEmptyChildren(category.children)
+        } else {
+          delete category.children
+        }
+      })
+    }
+    categoryTree.value = result.data
+    removeEmptyChildren(categoryTree.value)
+  })
+
 </script>
 
 <template>
@@ -160,6 +186,15 @@
               style="width: 220px"
               @keyup.enter="onSearch"
           />
+        </el-form-item>
+        <el-form-item label="分类">
+          <el-cascader
+              clearable
+              v-model="productQuery.categoryId"
+              :options="categoryTree"
+              :props="categoryProps"
+              placeholder="请选择二级分类"
+              style="width: 200px"/>
         </el-form-item>
         <el-form-item label="副标题">
           <el-input

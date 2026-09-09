@@ -36,7 +36,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         IPage<Product> page = new Page<>(productQuery.getPage(), productQuery.getLimit());
         LambdaQueryWrapper<Product> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.like(!ObjectUtils.isEmpty(productQuery.getName()), Product::getName, productQuery.getName())
-                        .like(!ObjectUtils.isEmpty(productQuery.getSubtitle()), Product::getSubtitle, productQuery.getSubtitle());
+                        .like(!ObjectUtils.isEmpty(productQuery.getSubtitle()), Product::getSubtitle, productQuery.getSubtitle())
+                        .eq(!ObjectUtils.isEmpty(productQuery.getCategoryId()), Product::getCategoryId, productQuery.getCategoryId());
         productMapper.selectPage(page, lambdaQueryWrapper);
 
         List<Product> list = page.getRecords();

@@ -1,5 +1,5 @@
 <script setup>
-  import adminApi from '@/api/admin.js'
+  import adminApi from '@/api/admin/admin.js'
   import {ref} from 'vue'
   import {ElMessage, ElMessageBox} from 'element-plus'
   import {Delete, Edit, Plus, Search, Refresh} from '@element-plus/icons-vue'
