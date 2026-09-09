@@ -19,6 +19,7 @@ const router = createRouter({
                 {path: '/admin', component: Admin},
                 {path: '/product', component: Product},
                 {path: '/category', component: Category},
+                {path: '/admin/info', component: AdminInfo},
             ]
         }
     ]
@@ -27,6 +28,7 @@ const router = createRouter({
 //路由守卫
 //全局前置守卫
 import {useTokenStore} from '@/store/token.js'
+import AdminInfo from "@/views/admin/AdminInfo.vue";
 let whiteList = ['/login']; // 白名单
 router.beforeEach((to, from, next) => {
     const tokenStore = useTokenStore()

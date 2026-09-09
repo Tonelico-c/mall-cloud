@@ -42,6 +42,9 @@ public class AdminController {
         if(!PasswordUtil.matches(admin.getPassword(), dbAdmin.getPassword())){
             return Result.error("密码错误");
         }
+        /*if(!admin.getPassword().equals(dbAdmin.getPassword())){
+            return Result.error("密码错误");
+        }*/
         if(dbAdmin.getStatus() == 0){
             return Result.error("账号已禁用");
         }
@@ -53,7 +56,7 @@ public class AdminController {
     }
     // 修改密码
     @PutMapping("/resetPassword")
-    public Result resetPassword(@RequestHeader("Authorization") String token,@RequestBody AdminPasswordDTO adminPasswordDTO){
+    public Result resetPassword(@RequestHeader("Authorization") String token, @RequestBody AdminPasswordDTO adminPasswordDTO){
         Map<String, Object> map = JwtUtil.parseToken(token);
         Integer id = (Integer) map.get("id");
         Admin user = adminService.getById(id);
@@ -65,7 +68,7 @@ public class AdminController {
         }
         Admin newUser =  new Admin();
         newUser.setId(user.getId());
-        newUser.setPassword(adminPasswordDTO.getNewPassword());
+        newUser.setPassword(PasswordUtil.hash(adminPasswordDTO.getNewPassword()));
         adminService.updateById(newUser);
         return Result.ok("密码修改成功");
     }
@@ -76,7 +79,9 @@ public class AdminController {
         Integer id = (Integer) map.get("id");
         Admin admin = adminService.getById(id);
         admin.setPassword(null);
-        return Result.ok(admin);
+        Map<String, Object> adminMap = new HashMap<>();
+        adminMap.put("admin", admin);
+        return Result.ok(adminMap);
     }
 
     @GetMapping

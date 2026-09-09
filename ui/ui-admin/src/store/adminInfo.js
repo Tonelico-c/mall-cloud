@@ -4,7 +4,7 @@ export const useAdminInfoStore = defineStore('adminInfo', {
     //存储数据地方
     state() {
         return {
-            admin: ''
+            admin: {}
         }
     },
     //actions里面放的是一个一个方法

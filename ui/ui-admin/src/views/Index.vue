@@ -49,7 +49,7 @@
   const getAdminInfo = () => {
     adminApi.adminInfo().then(result => {
       if (result.code == 1) {
-        adminInfoStore.setAdminInfo(result.data)
+        adminInfoStore.setAdminInfo(result.data.admin)
       }
     })
   }
@@ -131,13 +131,22 @@
   // 菜单  用户管理， 分类管理， 商品管理
   const menuData = ref([
     {name: '管理员管理', icon: 'Notebook', path: "/admin"},
-    {name: '商品管理', icon: 'TrendCharts', path: "/product"},
-    {name: '分类管理', icon: 'DataAnalysis', path: "/category"},
+    {
+      name: '商品中心', icon: 'TrendCharts', children: [
+        {name: '商品管理', icon: 'TrendCharts', path: "/product"},
+        {name: '分类管理', icon: 'DataAnalysis', path: "/category"},
+      ]
+    },
     {
       name: '权限管理', icon: 'GobletFull', children: [
         {name: '管理员管理', icon: 'GobletSquareFull', path: "/admin"},
-        {name: '角色管理', icon: 'TrendCharts', path: "/role"},
-        {name: '权限管理', icon: 'TrendCharts', path: "/permission"},
+        {name: '角色管理', icon: 'User', path: "/role"},
+        {name: '权限管理', icon: 'Lock', path: "/permission"},
+      ]
+    },
+    {
+      name: '个人中心', icon: 'User', children: [
+        {name: '基本资料', icon: 'Document', path: "/admin/info"},
       ]
     }
   ]);
@@ -187,14 +196,15 @@
         <el-dropdown placement="bottom-end" @command="handleCommand">
                     <span class="el-dropdown__box">
                         <el-avatar :src="adminInfoStore.admin.avatar?adminInfoStore.admin.avatar:avatar"/>
+                        <span>{{ adminInfoStore.admin.name }}</span>
                         <el-icon>
                             <CaretBottom/>
                         </el-icon>
                     </span>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="updateAdminInfo" :icon="Admin">基本资料</el-dropdown-item>
-              <el-dropdown-item command="avatar" :icon="Crop">更换头像</el-dropdown-item>
+              <el-dropdown-item command="info" :icon="User">基本资料</el-dropdown-item>
+              <el-dropdown-item command="updateAdminInfo" :icon="Crop">修改个人信息</el-dropdown-item>
               <el-dropdown-item command="resetPassword" :icon="EditPen">重置密码</el-dropdown-item>
               <el-dropdown-item command="logout" :icon="SwitchButton">退出登录</el-dropdown-item>
             </el-dropdown-menu>
@@ -343,6 +353,9 @@
   height: 178px;
   text-align: center;
 }
-
-
+.dropdown-name {
+  margin-left: 10px;
+  font-size: 14px;
+  color: #4b625e;
+}
 </style>

@@ -157,7 +157,10 @@
   }
 
   // 角色显示
-  const roleText = (role) => (role === 0 ? '管理员' : '普通用户')
+  const roleList = [
+    {value: 0, label: '超级管理员'},
+    {value: 1, label: '普通用户'}
+  ]
 </script>
 
 <template>
@@ -215,7 +218,7 @@
       <el-table-column prop="phone" label="电话" width="200"/>
       <el-table-column prop="role" label="角色" width="120">
         <template #default="{row}">
-          <el-tag :type="row.role === 0 ? 'danger' : 'info'">{{ roleText(row.role) }}</el-tag>
+          <el-tag :type="row.role === 0 ? 'danger' : 'info'">{{ roleList.find(role => role.value === row.role).label }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="status" label="状态" width="100">
@@ -256,10 +259,6 @@
     <el-form :model="admin">
       <el-form-item label="用户名" :label-width="80">
         <el-input v-model="admin.name" autocomplete="off" />
-      </el-form-item>
-      <el-form-item label="密码" :label-width="80">
-        <el-input v-model="admin.password" type="password" show-password
-                  :placeholder="admin.id ? '不修改请留空' : '请输入密码'" autocomplete="new-password" />
       </el-form-item>
       <el-form-item label="邮箱" :label-width="80">
         <el-input v-model="admin.email" autocomplete="off" />
