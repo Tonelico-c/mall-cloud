@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.situ.mall.pojo.entity.Product;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.situ.mall.pojo.query.ProductQuery;
+import com.situ.mall.pojo.vo.ProductVO;
 
 /**
  * <p>
@@ -15,5 +16,5 @@ import com.situ.mall.pojo.query.ProductQuery;
  */
 public interface IProductService extends IService<Product> {
 
-    IPage<Product> list(ProductQuery productQuery);
+    IPage<ProductVO> list(ProductQuery productQuery);
 }

@@ -188,6 +188,7 @@
           <img :src="row.mainImage" alt="主图" class="table-image" v-if="row.mainImage"/>
         </template>
       </el-table-column>
+      <el-table-column prop="categoryName" label="分类名称" width="120"/>
       <el-table-column prop="name" label="商品名称" width="180"/>
       <el-table-column prop="subtitle" label="副标题" width="200"/>
       <el-table-column prop="categoryId" label="分类ID" width="100"/>

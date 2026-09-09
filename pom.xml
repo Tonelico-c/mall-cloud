@@ -13,6 +13,8 @@
         <module>mall-admin</module>
         <module>mall-product</module>
         <module>mall-category</module>
+        <module>mall-gateway</module>
+        <module>mall-api</module>
     </modules>
 
     <!-- 指定父工程 -->
@@ -54,10 +56,10 @@
     </dependencyManagement>
     <!-- 管理依赖，版本锁定 -->
     <dependencies>
-        <dependency>
+        <!--<dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
+        </dependency>-->
         <!-- mybatis和spring boot整合的起步依赖 -->
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
