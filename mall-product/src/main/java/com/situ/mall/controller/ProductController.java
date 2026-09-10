@@ -36,7 +36,7 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public Result<Product> selectById(@PathVariable Long id){
-        Product product = productService.getById(id);
+        Product product = productService.selectById(id);
         return Result.ok(product);
     }
 
@@ -48,12 +48,12 @@ public class ProductController {
     @PutMapping("/{id}")
     public Result update(@PathVariable Long id, @RequestBody Product product){
         product.setId(id);
-        productService.updateById(product);
+        productService.update(product);
         return Result.ok("修改成功");
     }
     @DeleteMapping("/{id}")
     public Result delete(@PathVariable Long id){
-        productService.removeById(id);
+        productService.deleteById(id);
         return Result.ok("删除成功");
     }
     @DeleteMapping

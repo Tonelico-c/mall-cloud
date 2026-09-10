@@ -54,7 +54,7 @@ public class CategoryController {
      */
     @PostMapping
     public Result add(@RequestBody Category category) {
-        categoryService.save(category);
+        categoryService.add(category);
         return Result.ok("添加成功");
     }
 

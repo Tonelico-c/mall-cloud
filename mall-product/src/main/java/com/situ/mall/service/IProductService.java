@@ -17,4 +17,10 @@ import com.situ.mall.pojo.vo.ProductVO;
 public interface IProductService extends IService<Product> {
 
     IPage<ProductVO> list(ProductQuery productQuery);
+
+    Product selectById(Long id);
+
+    void deleteById(Long id);
+
+    void update(Product product);
 }

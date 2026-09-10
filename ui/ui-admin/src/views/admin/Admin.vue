@@ -3,6 +3,8 @@
   import {ref} from 'vue'
   import {ElMessage, ElMessageBox} from 'element-plus'
   import {Delete, Edit, Plus, Search, Refresh} from '@element-plus/icons-vue'
+  import {useTokenStore} from '@/store/token.js'
+  const tokenStore = useTokenStore()
 
   //表格数据
   const list = ref([])
@@ -97,6 +99,12 @@
     })
   }
 
+
+  //上传头像
+  const handleAvatarSuccess = (result) => {
+    console.log(result)
+    admin.value.avatar = result.data
+  }
   //添加、编辑
   const dialogFormVisible = ref(false)
   const admin = ref({})
@@ -281,6 +289,17 @@
             inactive-text="停用"
         />
       </el-form-item>
+      <el-form-item label="头像" :label-width="60">
+        <el-upload
+            class="avatar-uploader"
+            action="/api/upload"
+            :show-file-list="false"
+            :on-success="handleAvatarSuccess"
+            :headers="{Authorization: tokenStore.token}">
+          <img v-if="admin.avatar" :src="admin.avatar" class="avatar" />
+          <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+        </el-upload>
+      </el-form-item>
     </el-form>
     <template #footer>
       <div class="dialog-footer">
@@ -325,5 +344,23 @@
   border-radius: 50%;
   object-fit: cover;
   margin: 0 auto;
+}
+.avatar-uploader .avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+}
+
+.avatar-uploader .el-upload {
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration-fast);
+}
+
+.avatar-uploader .el-upload:hover {
+  border-color: var(--el-color-primary);
 }
 </style>

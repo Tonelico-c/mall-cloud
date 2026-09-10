@@ -71,6 +71,12 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
         return categoryVOTree;
     }
 
+    @Override
+    public void add(Category category) {
+        categoryMapper.insert(category);
+        redisTemplate.delete("categoryTree");
+    }
+
     /**
      * 构建分类树的第一层：筛选出所有顶级分类并为它们递归装配子分类
      * <p>
