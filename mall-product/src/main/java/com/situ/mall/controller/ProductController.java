@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 /**
  * <p>
@@ -38,6 +39,12 @@ public class ProductController {
     public Result<Product> selectById(@PathVariable Long id){
         Product product = productService.selectById(id);
         return Result.ok(product);
+    }
+    // 获取所有商品图片
+    @GetMapping("/selectAllImage")
+    Result<Set<String>> selectAllImage(){
+        Set<String> set = productService.selectAllImage();
+        return Result.ok(set);
     }
 
     @PostMapping

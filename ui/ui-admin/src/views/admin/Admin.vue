@@ -103,7 +103,17 @@
   //上传头像
   const handleAvatarSuccess = (result) => {
     console.log(result)
-    admin.value.avatar = result.data
+    if (result.code === 1) {
+      admin.value.avatar = result.data
+      ElMessage.success(result.msg)
+    } else {
+      ElMessage.error(result.msg)
+    }
+  }
+  //上传失败（网络错误、404、413、500等）时给出提示，默认是静默失败的
+  const handleAvatarError = (error) => {
+    console.error(error)
+    ElMessage.error('上传失败，请检查网关路由和后端/upload接口')
   }
   //添加、编辑
   const dialogFormVisible = ref(false)
@@ -295,7 +305,10 @@
             action="/api/upload"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
-            :headers="{Authorization: tokenStore.token}">
+            :on-error="handleAvatarError"
+            :headers="{Authorization: tokenStore.token}"
+            name="file"
+            accept="image/*">
           <img v-if="admin.avatar" :src="admin.avatar" class="avatar" />
           <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
         </el-upload>
@@ -351,7 +364,8 @@
   display: block;
 }
 
-.avatar-uploader .el-upload {
+/* el-upload 内部元素不带 scoped 的 data-v 属性，必须用 :deep() 才能生效 */
+.avatar-uploader :deep(.el-upload) {
   border: 1px dashed var(--el-border-color);
   border-radius: 6px;
   cursor: pointer;
@@ -360,7 +374,17 @@
   transition: var(--el-transition-duration-fast);
 }
 
-.avatar-uploader .el-upload:hover {
+.avatar-uploader :deep(.el-upload:hover) {
   border-color: var(--el-color-primary);
+}
+
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * <p>
@@ -72,7 +73,7 @@ public class AdminController {
         adminService.updateById(newUser);
         return Result.ok("密码修改成功");
     }
-
+    // 获取当前登录管理员信息
     @GetMapping("/adminInfo")
     public Result<Admin> adminInfo(@RequestHeader("Authorization") String token){
         Map<String, Object> map = JwtUtil.parseToken(token);
@@ -93,6 +94,12 @@ public class AdminController {
     @GetMapping("/{id}")
     public Result<Admin> selectById(@PathVariable Long id){
         return Result.ok(adminService.getById(id));
+    }
+
+    @GetMapping("/selectAllImage")
+    Result<Set<String>> selectAllImage() {
+        Set<String> set = adminService.selectAllImage();
+        return Result.ok(set);
     }
 
     @PostMapping

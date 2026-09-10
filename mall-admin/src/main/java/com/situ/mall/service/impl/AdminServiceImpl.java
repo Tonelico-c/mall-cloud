@@ -15,6 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
  * <p>
  *  服务实现类
@@ -49,5 +53,14 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         }
         admin.setPassword(PasswordUtil.hash(admin.getPassword()));
         adminMapper.insert(admin);
+    }
+
+    // 查询数据库中所有头像
+    @Override
+    public Set<String> selectAllImage() {
+        QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("avatar");
+        List<Admin> list = adminMapper.selectList(queryWrapper);
+        return list.stream().map(Admin::getAvatar).collect(Collectors.toSet());
     }
 }

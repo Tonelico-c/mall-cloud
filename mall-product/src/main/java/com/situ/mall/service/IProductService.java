@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.situ.mall.pojo.query.ProductQuery;
 import com.situ.mall.pojo.vo.ProductVO;
 
+import java.util.Set;
+
 /**
  * <p>
  *  服务类
@@ -23,4 +25,6 @@ public interface IProductService extends IService<Product> {
     void deleteById(Long id);
 
     void update(Product product);
+
+    Set<String> selectAllImage();
 }

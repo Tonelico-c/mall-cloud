@@ -2,6 +2,7 @@ package com.situ.mall.service.impl;
 
 import com.alibaba.nacos.client.naming.utils.CollectionUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.situ.mall.api.category.CategoryClient;
@@ -21,7 +22,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -84,6 +87,18 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     @Override
     public void update(Product product) {
         productMapper.updateById(product);
+    }
+
+    @Override
+    public Set<String> selectAllImage() {
+        QueryWrapper<Product> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("main_image");
+        List<Product> list = productMapper.selectList(queryWrapper);
+        Set<String> set = new HashSet<>();
+        for (Product product : list) {
+            set.add(product.getMainImage());
+        }
+        return set;
     }
 
 

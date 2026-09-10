@@ -5,6 +5,8 @@ import com.situ.mall.pojo.entity.Admin;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.situ.mall.pojo.query.AdminQuery;
 
+import java.util.Set;
+
 /**
  * <p>
  *  服务类
@@ -18,4 +20,6 @@ public interface IAdminService extends IService<Admin> {
     IPage<Admin> list(AdminQuery adminQuery);
 
     void add(Admin admin);
+
+    Set<String> selectAllImage();
 }
