@@ -285,7 +285,7 @@
       <el-form-item label="主图" :label-width="80">
         <el-upload
             class="image-uploader"
-            action="/api/upload"
+            action="/api/service/upload"
             :show-file-list="false"
             :on-success="handleMainImageSuccess"
             :headers="{Authorization: tokenStore.token}"

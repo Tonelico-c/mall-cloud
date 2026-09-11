@@ -3,6 +3,7 @@ package com.situ.mall.controller;
 import com.situ.mall.common.utils.AliOSSUtil;
 import com.situ.mall.common.utils.Result;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,6 +12,7 @@ import java.util.UUID;
 
 //一定要加@RestController，否则类不会被扫描成Bean，/upload映射不存在，前端会拿到404
 @RestController
+@RequestMapping("/service")
 public class UploadController {
     //MultipartFile file 封装了上传的文件的所有信息
     @PostMapping("/upload")

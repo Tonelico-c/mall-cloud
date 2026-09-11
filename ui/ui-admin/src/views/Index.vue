@@ -1,15 +1,6 @@
 <script setup>
-  import {
-    Management,
-    Promotion,
-    PriceTag,
-    UserFilled,
-    User,
-    Crop,
-    EditPen,
-    SwitchButton,
-    CaretBottom
-  } from '@element-plus/icons-vue'
+  //只导入模板里真正用到的图标
+  import {Shop, User, Crop, EditPen, SwitchButton, CaretBottom} from '@element-plus/icons-vue'
   import avatar from '@/assets/default.png'
   //条目被点击后,调用的函数
   import {useRouter} from 'vue-router'
@@ -158,10 +149,19 @@
   <!-- element-plus中的容器 -->
   <el-container class="layout-container">
     <!-- 左侧菜单 -->
-    <el-aside width="200px">
-      <div class="el-aside__logo"></div>
-      <!-- element-plus的菜单标签 -->
-      <el-menu active-text-color="#ffd04b" background-color="#232323" text-color="#fff" router>
+    <el-aside width="210px">
+      <!-- 侧边栏品牌区 -->
+      <div class="sidebar-brand">
+        <el-icon class="brand-icon">
+          <Shop/>
+        </el-icon>
+        <div class="brand-text">
+          <p class="brand-name">电商管理系统</p>
+          <p class="brand-en">MALL ADMIN</p>
+        </div>
+      </div>
+      <!-- element-plus的菜单标签；配色统一交给下面 style 里的 CSS 变量接管 -->
+      <el-menu router>
         <!-- 动态生成菜单 -->
         <template v-for="(menu, index) in menuData" :index="index.toString()">
           <el-sub-menu v-if="menu.children?.length>0" :index="menu.name">
@@ -190,13 +190,13 @@
     <el-container>
       <!-- 头部区域 -->
       <el-header>
-        <div><strong>电商后台管理系统{{ zhansgan }}</strong></div>
+        <div class="header-title">电商后台管理系统</div>
         <!-- 下拉菜单 -->
         <!-- command: 条目被点击后会触发,在事件函数上可以声明一个参数,接收条目对应的指令 -->
         <el-dropdown placement="bottom-end" @command="handleCommand">
                     <span class="el-dropdown__box">
-                        <el-avatar :src="adminInfoStore.admin.avatar?adminInfoStore.admin.avatar:avatar"/>
-                        <span>{{ adminInfoStore.admin.name }}</span>
+                        <el-avatar :size="32" :src="adminInfoStore.admin.avatar?adminInfoStore.admin.avatar:avatar"/>
+                        <span class="dropdown-name">{{ adminInfoStore.admin.name }}</span>
                         <el-icon>
                             <CaretBottom/>
                         </el-icon>
@@ -213,9 +213,6 @@
       </el-header>
       <!-- 中间区域 -->
       <el-main>
-        <!-- <div style="width: 1290px; height: 570px;border: 1px solid red;">
-                    内容展示区
-                </div> -->
         <router-view></router-view>
       </el-main>
       <!-- 底部区域 -->
@@ -223,7 +220,7 @@
     </el-container>
   </el-container>
 
-  <el-dialog v-model="dialogFormVisible" :title="修改个人信息" width="500" :lock-scroll="false">
+  <el-dialog v-model="dialogFormVisible" title="修改个人信息" width="500" :lock-scroll="false">
     <el-form :model="admin">
       <el-form-item label="名字" :label-width="60">
         <el-input v-model="admin.name" autocomplete="off" />
@@ -237,10 +234,12 @@
       <el-form-item label="头像" :label-width="60">
         <el-upload
             class="avatar-uploader"
-            action="/api/upload"
+            action="/api/service/upload"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
-            :headers="{Authorization: tokenStore.token}">
+            :headers="{Authorization: tokenStore.token}"
+            name="file"
+            accept="image/*">
           <img v-if="admin.avatar" :src="admin.avatar" class="avatar" />
           <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
         </el-upload>
@@ -283,47 +282,172 @@
 .layout-container {
   height: 100vh;
 
+  /* 左侧菜单 */
   .el-aside {
-    background-color: #232323;
+    display: flex;
+    flex-direction: column;
+    /* 深墨青，和后端登录页的品牌色是一套 */
+    background: linear-gradient(180deg, #10403c 0%, #0c2c2a 100%);
 
-    &__logo {
-      height: 120px;
-      background: url('@/assets/logo.svg') no-repeat center / 120px auto;
+    .sidebar-brand {
+      flex: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 60px;
+      padding: 0 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, .08);
+
+      .brand-icon {
+        flex: none;
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        font-size: 19px;
+        color: #5eead4;
+        background-color: rgba(94, 234, 212, .13);
+        border: 1px solid rgba(94, 234, 212, .22);
+      }
+
+      .brand-text {
+        min-width: 0;
+
+        .brand-name {
+          margin: 0;
+          font-size: 15px;
+          font-weight: 600;
+          letter-spacing: .5px;
+          white-space: nowrap;
+          color: #fff;
+        }
+
+        .brand-en {
+          margin: 2px 0 0;
+          font-size: 10px;
+          letter-spacing: 1.5px;
+          color: rgba(255, 255, 255, .42);
+        }
+      }
     }
 
     .el-menu {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 8px 0;
       border-right: none;
+      /* 原来配色写在组件 props 上，会以内联样式注入，优先级高于这里的样式，所以改成用 CSS 变量接管 */
+      --el-menu-bg-color: transparent;
+      --el-menu-text-color: rgba(255, 255, 255, .7);
+      --el-menu-hover-text-color: #fff;
+      --el-menu-hover-bg-color: rgba(255, 255, 255, .07);
+      --el-menu-active-color: #5eead4;
+      --el-menu-base-level-padding: 14px;
+      --el-menu-level-padding: 16px;
+      --el-menu-item-height: 44px;
+      --el-menu-sub-item-height: 40px;
+
+      :deep(.el-menu-item),
+      :deep(.el-sub-menu__title) {
+        margin: 2px 10px;
+        border-radius: 8px;
+        transition: background-color .2s, color .2s;
+      }
+
+      :deep(.el-menu-item.is-active) {
+        position: relative;
+        font-weight: 600;
+        background-color: rgba(20, 184, 166, .16);
+
+        /* 左侧高亮竖条 */
+        &::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 0;
+          width: 3px;
+          height: 18px;
+          border-radius: 0 3px 3px 0;
+          background-color: #5eead4;
+          transform: translateY(-50%);
+        }
+      }
+
+      :deep(.el-sub-menu.is-active > .el-sub-menu__title) {
+        color: #5eead4;
+      }
     }
   }
 
+  /* 顶部栏 */
   .el-header {
-    background-color: #fff;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    height: 60px;
+    padding: 0 20px;
+    background-color: #fff;
+    border-bottom: 1px solid #eef1f3;
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2d3d;
+
+      &::before {
+        content: '';
+        width: 4px;
+        height: 16px;
+        margin-right: 10px;
+        border-radius: 2px;
+        background: linear-gradient(180deg, #14b8a6, #0f766e);
+      }
+    }
 
     .el-dropdown__box {
       display: flex;
       align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      outline: none;
+      transition: background-color .2s;
 
-      .el-icon {
-        color: #999;
-        margin-left: 10px;
+      &:hover {
+        background-color: #f2f5f6;
       }
 
-      &:active,
-      &:focus {
-        outline: none;
+      .dropdown-name {
+        font-size: 14px;
+        color: #46555f;
+      }
+
+      .el-icon {
+        font-size: 14px;
+        color: #98a4ae;
       }
     }
   }
 
+  /* 内容区：淡灰底，让 el-card 浮起来 */
+  .el-main {
+    padding: 16px;
+    background-color: #f5f7f9;
+  }
+
+  /* 底部 */
   .el-footer {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    color: #666;
+    height: 48px;
+    font-size: 12px;
+    color: #94a3b8;
+    background-color: #fff;
+    border-top: 1px solid #eef1f3;
   }
 }
 
@@ -333,17 +457,18 @@
   display: block;
 }
 
-.avatar-uploader .el-upload {
+/* el-upload 内部元素不带 scoped 的 data-v 属性，必须用 :deep() 才能生效 */
+.avatar-uploader :deep(.el-upload) {
   border: 1px dashed var(--el-border-color);
   border-radius: 6px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
   transition: var(--el-transition-duration-fast);
-}
 
-.avatar-uploader .el-upload:hover {
-  border-color: var(--el-color-primary);
+  &:hover {
+    border-color: var(--el-color-primary);
+  }
 }
 
 .el-icon.avatar-uploader-icon {
@@ -352,10 +477,5 @@
   width: 178px;
   height: 178px;
   text-align: center;
-}
-.dropdown-name {
-  margin-left: 10px;
-  font-size: 14px;
-  color: #4b625e;
 }
 </style>

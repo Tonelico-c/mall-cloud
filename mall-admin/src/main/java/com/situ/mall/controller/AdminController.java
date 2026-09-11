@@ -97,9 +97,8 @@ public class AdminController {
     }
 
     @GetMapping("/selectAllImage")
-    Result<Set<String>> selectAllImage() {
-        Set<String> set = adminService.selectAllImage();
-        return Result.ok(set);
+    Set<String> selectAllImage() {
+        return adminService.selectAllImage();
     }
 
     @PostMapping

@@ -61,6 +61,11 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("avatar");
         List<Admin> list = adminMapper.selectList(queryWrapper);
-        return list.stream().map(Admin::getAvatar).collect(Collectors.toSet());
+        return list.stream()
+                .filter(admin -> admin != null)
+                .map(Admin::getAvatar)
+                .filter(avatar -> !ObjectUtils.isEmpty(avatar))
+                .map(avatar -> avatar.substring(avatar.lastIndexOf("/") + 1))
+                .collect(Collectors.toSet());
     }
 }

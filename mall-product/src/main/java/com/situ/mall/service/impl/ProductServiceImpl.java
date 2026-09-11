@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -94,11 +95,12 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         QueryWrapper<Product> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("main_image");
         List<Product> list = productMapper.selectList(queryWrapper);
-        Set<String> set = new HashSet<>();
-        for (Product product : list) {
-            set.add(product.getMainImage());
-        }
-        return set;
+        return list.stream()
+                .filter(product -> product != null)
+                .map(Product::getMainImage)
+                .filter(image -> !ObjectUtils.isEmpty(image))
+                .map(image -> image.substring(image.lastIndexOf("/") + 1))
+                .collect(Collectors.toSet());
     }
 
 

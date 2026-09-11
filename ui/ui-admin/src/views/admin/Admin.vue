@@ -302,7 +302,7 @@
       <el-form-item label="头像" :label-width="60">
         <el-upload
             class="avatar-uploader"
-            action="/api/upload"
+            action="/api/service/upload"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
             :on-error="handleAvatarError"

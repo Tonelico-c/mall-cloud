@@ -22,7 +22,7 @@ public class AliOSSUtil {
     private static final String ACCESS_KEY_ID = System.getenv("OSS_ACCESS_KEY_ID");
     private static final String ACCESS_KEY_SECRET = System.getenv("OSS_ACCESS_KEY_SECRET");
     // 填写Bucket名称，例如examplebucket。
-    private static final String BUCKET_NAME = "gao2607";
+    private static final String BUCKET_NAME = "gao2607-mall";
 
     public static String uploadFile(String objectName, InputStream inputStream) throws Exception {
         // 创建OSSClient实例。
@@ -96,7 +96,7 @@ public class AliOSSUtil {
                 objectListing = ossClient.listObjects(listObjectsRequest);
                 List<OSSObjectSummary> sums = objectListing.getObjectSummaries();
                 for (OSSObjectSummary s : sums) {
-                    System.out.println(s.getKey()); // 打印文件路径
+                    System.out.println("阿里云OSS: " + s.getKey()); // 打印文件路径
                     set.add(s.getKey());
                 }
                 nextMarker = objectListing.getNextMarker();

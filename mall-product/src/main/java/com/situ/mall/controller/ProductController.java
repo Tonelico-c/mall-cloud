@@ -42,9 +42,8 @@ public class ProductController {
     }
     // 获取所有商品图片
     @GetMapping("/selectAllImage")
-    Result<Set<String>> selectAllImage(){
-        Set<String> set = productService.selectAllImage();
-        return Result.ok(set);
+    Set<String> selectAllImage(){
+        return productService.selectAllImage();
     }
 
     @PostMapping
