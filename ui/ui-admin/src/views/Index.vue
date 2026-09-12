@@ -10,7 +10,7 @@
   const tokenStore = useTokenStore();
   import {useAdminInfoStore} from '@/store/adminInfo.js'
   import {ref} from "vue";
-  import {ElMessage} from "element-plus";
+  import {ElMessage, ElMessageBox} from "element-plus";
   const adminInfoStore = useAdminInfoStore();
 
   const dialogFormVisible = ref(false)
@@ -19,9 +19,26 @@
   const handleCommand = (command) => {
     //判断指令
     if (command === 'logout') {
-      //退出登录
-      tokenStore.removeToken();
-      router.push('/login')
+      //退出登录前先二次确认，防止误点
+      ElMessageBox.confirm(
+          '您确认要退出登录么?',
+          '提示',
+          {
+            confirmButtonText: '确认',
+            cancelButtonText: '取消',
+            type: 'warning',
+            lockScroll: false //防止抖动
+          }
+      ).then(() => {
+        //清掉token和缓存的用户信息，和"重置密码"成功后的处理保持一致
+        tokenStore.removeToken();
+        adminInfoStore.removeAdminInfo();
+        //提示挂载在body上，跳转路由后依然会显示在登录页顶部
+        ElMessage.success('退出登录成功')
+        router.push('/login')
+      }).catch(() => {
+        //点了取消会走这里：ElMessageBox 取消时是 reject，不兜住控制台会有 unhandled rejection
+      })
     } else if (command === 'updateAdminInfo') {
       dialogFormVisible.value = true
       //admin.value = adminInfoStore.admin

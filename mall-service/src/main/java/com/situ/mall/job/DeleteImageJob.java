@@ -22,7 +22,7 @@ public class DeleteImageJob {
     @Autowired
     private ProductClient productClient;
 
-    @Scheduled(cron = "0 0/5 * * * ?")
+    @Scheduled(cron = "0 0 10 * * ?")
     public void deleteImage() throws InterruptedException {
         log.info("DeleteImageJob.deleteImage");
         // 查询所有微服务使用的图片

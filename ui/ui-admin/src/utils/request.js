@@ -41,6 +41,7 @@ request.interceptors.response.use(
         //判断响应状态码,如果为401,则证明未登录,提示请登录,并跳转到登录页面
         if (error.response.status === 401) {
             ElMessage.error('请先登录')
+            tokenStore.removeToken()
             router.push('/login')
         } else {
             ElMessage.error('服务异常')
