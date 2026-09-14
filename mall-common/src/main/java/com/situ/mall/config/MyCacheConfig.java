@@ -1,4 +1,4 @@
-package com.situ.mall.common.config;
+package com.situ.mall.config;
 
 import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

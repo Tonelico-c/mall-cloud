@@ -1,4 +1,4 @@
-package com.situ.mall.common.utils;
+package com.situ.mall.utils;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 

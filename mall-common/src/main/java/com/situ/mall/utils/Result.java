@@ -1,4 +1,4 @@
-package com.situ.mall.common.utils;
+package com.situ.mall.utils;
 
 // 请求是成功还是失败：ok error
 // 后台希望前台弹出消息：msg

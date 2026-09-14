@@ -1,4 +1,4 @@
-package com.situ.mall.common.config;
+package com.situ.mall.config;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import org.apache.ibatis.reflection.MetaObject;

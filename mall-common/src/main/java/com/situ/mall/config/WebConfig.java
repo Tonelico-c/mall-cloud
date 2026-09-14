@@ -1,6 +1,6 @@
-package com.situ.mall.common.config;
+package com.situ.mall.config;
 
-import com.situ.mall.common.interceptor.LoginInterceptor;
+import com.situ.mall.interceptor.LoginInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.format.FormatterRegistry;

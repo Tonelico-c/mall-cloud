@@ -1,8 +1,8 @@
 package com.situ.mall.controller;
 
 
-import com.situ.mall.common.utils.LoginContext;
-import com.situ.mall.common.utils.Result;
+import com.situ.mall.utils.LoginContext;
+import com.situ.mall.utils.Result;
 import com.situ.mall.pojo.entity.Category;
 import com.situ.mall.pojo.vo.CategoryVO;
 import com.situ.mall.service.ICategoryService;

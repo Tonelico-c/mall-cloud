@@ -1,4 +1,4 @@
-package com.situ.mall.common.config;
+package com.situ.mall.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;

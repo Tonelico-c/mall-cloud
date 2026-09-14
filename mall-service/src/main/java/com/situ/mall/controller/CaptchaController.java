@@ -1,7 +1,7 @@
 package com.situ.mall.controller;
 
 import com.google.code.kaptcha.impl.DefaultKaptcha;
-import com.situ.mall.common.utils.Result;
+import com.situ.mall.utils.Result;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ public class CaptchaController {
         String captcha = defaultKaptcha.createText();
         //redis存储
         String uuid = UUID.randomUUID().toString().replace("-", "");
-        redisTemplate.opsForValue().set("captcha:" + uuid, captcha, 30, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set("captcha:" + uuid, captcha, 2, TimeUnit.MINUTES);
         BufferedImage image = defaultKaptcha.createImage(captcha);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ImageIO.write(image, "jpg", out);

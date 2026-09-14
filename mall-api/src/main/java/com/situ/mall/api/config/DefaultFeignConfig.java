@@ -1,6 +1,6 @@
 package com.situ.mall.api.config;
 
-import com.situ.mall.common.utils.LoginContext;
+import com.situ.mall.utils.LoginContext;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import org.springframework.context.annotation.Bean;

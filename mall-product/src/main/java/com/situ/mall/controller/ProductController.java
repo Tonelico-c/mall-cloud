@@ -2,17 +2,16 @@ package com.situ.mall.controller;
 
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.situ.mall.common.utils.Result;
+import com.situ.mall.annotation.MyLog;
+import com.situ.mall.utils.Result;
 import com.situ.mall.pojo.entity.Product;
 import com.situ.mall.pojo.query.ProductQuery;
 import com.situ.mall.pojo.vo.ProductVO;
 import com.situ.mall.service.IProductService;
-import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
-import java.util.PriorityQueue;
 import java.util.Set;
 
 /**
@@ -51,17 +50,20 @@ public class ProductController {
         productService.save(product);
         return Result.ok("添加成功");
     }
+    @MyLog(module = "修改商品")
     @PutMapping("/{id}")
     public Result update(@PathVariable Long id, @RequestBody Product product){
         product.setId(id);
         productService.update(product);
         return Result.ok("修改成功");
     }
+    @MyLog(module = "删除商品")
     @DeleteMapping("/{id}")
     public Result delete(@PathVariable Long id){
         productService.deleteById(id);
         return Result.ok("删除成功");
     }
+    @MyLog(module = "删除商品")
     @DeleteMapping
     public Result deleteBatch(@RequestBody Long[] ids){
         productService.removeByIds(Arrays.asList(ids));

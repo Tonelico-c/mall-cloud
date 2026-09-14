@@ -1,7 +1,7 @@
 package com.situ.mall.controller;
 
-import com.situ.mall.common.utils.AliOSSUtil;
-import com.situ.mall.common.utils.Result;
+import com.situ.mall.utils.AliOSSUtil;
+import com.situ.mall.utils.Result;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;

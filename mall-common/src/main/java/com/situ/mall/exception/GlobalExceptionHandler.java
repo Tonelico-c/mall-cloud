@@ -1,6 +1,6 @@
-package com.situ.mall.common.exception;
+package com.situ.mall.exception;
 
-import com.situ.mall.common.utils.Result;
+import com.situ.mall.utils.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

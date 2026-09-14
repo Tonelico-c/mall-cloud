@@ -3,9 +3,10 @@ package com.situ.mall.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.situ.mall.common.utils.JwtUtil;
-import com.situ.mall.common.utils.PasswordUtil;
-import com.situ.mall.common.utils.Result;
+import com.situ.mall.annotation.MyLog;
+import com.situ.mall.utils.JwtUtil;
+import com.situ.mall.utils.PasswordUtil;
+import com.situ.mall.utils.Result;
 import com.situ.mall.pojo.dto.AdminPasswordDTO;
 import com.situ.mall.pojo.dto.LoginInfoDTO;
 import com.situ.mall.pojo.entity.Admin;
@@ -38,6 +39,7 @@ public class AdminController {
     private RedisTemplate redisTemplate;
 
 
+    @MyLog(module = "管理员: 登录")
     @PostMapping("/login")
     public Result<String> login(@RequestBody LoginInfoDTO loginInfoDTO){
 

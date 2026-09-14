@@ -1,6 +1,6 @@
-package com.situ.mall.common.interceptor;
+package com.situ.mall.interceptor;
 
-import com.situ.mall.common.utils.LoginContext;
+import com.situ.mall.utils.LoginContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.util.StringUtils;
