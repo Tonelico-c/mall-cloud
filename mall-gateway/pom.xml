@@ -18,17 +18,6 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>com.situ</groupId>
-            <artifactId>mall-common</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-web</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
         <!-- 网关gateway依赖-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

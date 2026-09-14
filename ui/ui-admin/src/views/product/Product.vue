@@ -345,6 +345,13 @@
   border-radius: 4px;
   object-fit: cover;
   margin: 0 auto;
+  border: 1px solid #eef2f5;
+  box-shadow: 0 2px 6px rgba(31, 45, 61, .1);
+  transition: transform .2s;
+}
+
+.table-image:hover {
+  transform: scale(1.08);
 }
 
 .image-uploader .image {

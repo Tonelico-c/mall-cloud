@@ -26,7 +26,7 @@ import java.util.Set;
  * @since 2026-09-07
  */
 @RestController
-@RequestMapping("/admins")
+@RequestMapping("/admin")
 public class AdminController {
 
     @Autowired

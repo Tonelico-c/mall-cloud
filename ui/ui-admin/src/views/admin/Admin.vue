@@ -357,6 +357,8 @@
   border-radius: 50%;
   object-fit: cover;
   margin: 0 auto;
+  border: 2px solid #eef2f5;
+  box-shadow: 0 2px 6px rgba(31, 45, 61, .12);
 }
 .avatar-uploader .avatar {
   width: 178px;

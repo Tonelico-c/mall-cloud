@@ -451,8 +451,34 @@
 
   /* 内容区：淡灰底，让 el-card 浮起来 */
   .el-main {
-    padding: 16px;
-    background-color: #f5f7f9;
+    padding: 20px;
+    background-color: #f0f2f5;
+
+    /* 页面卡片：去描边、轻投影、大圆角，统一后台质感 */
+    :deep(.el-card) {
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 4px 16px rgba(31, 45, 61, .06);
+    }
+
+    :deep(.el-card__header) {
+      padding: 16px 20px;
+      border-bottom: 1px solid #f0f2f5;
+    }
+
+    :deep(.el-card__body) {
+      padding: 20px;
+    }
+
+    /* 表格：统一淡灰表头 */
+    :deep(.el-table) {
+      --el-table-header-bg-color: #f7f9fb;
+      --el-table-header-text-color: #46555f;
+
+      th.el-table__cell {
+        font-weight: 600;
+      }
+    }
   }
 
   /* 底部 */

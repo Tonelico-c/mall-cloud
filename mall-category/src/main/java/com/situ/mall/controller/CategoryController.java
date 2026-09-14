@@ -1,10 +1,12 @@
 package com.situ.mall.controller;
 
 
+import com.situ.mall.common.utils.LoginContext;
 import com.situ.mall.common.utils.Result;
 import com.situ.mall.pojo.entity.Category;
 import com.situ.mall.pojo.vo.CategoryVO;
 import com.situ.mall.service.ICategoryService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,12 +22,16 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/category")
+@Slf4j
 public class CategoryController {
     @Autowired
     private ICategoryService categoryService;
     @GetMapping("/name/{id}")
     String getCategoryNameById(@PathVariable Long id){
-       return categoryService.getById(id).getName();
+        Long id1 = (Long) LoginContext.getLoginInfo().get("id");
+        log.info("CategoryController selectNameById id1: {}", id1);
+
+        return categoryService.getById(id).getName();
     }
 
     /**

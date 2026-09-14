@@ -132,5 +132,10 @@
 </template>
 
 <style scoped>
-
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
 </style>

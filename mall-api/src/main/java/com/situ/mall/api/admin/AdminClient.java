@@ -7,6 +7,6 @@ import java.util.Set;
 
 @FeignClient("admin-service")
 public interface AdminClient {
-    @GetMapping("/admins/selectAllImage")
+    @GetMapping("/admin/selectAllImage")
     Set<String> selectAllImage();
 }

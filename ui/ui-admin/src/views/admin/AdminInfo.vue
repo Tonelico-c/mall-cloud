@@ -45,4 +45,15 @@
     justify-content: space-between;
   }
 }
+
+/* 资料页头像：正圆 + 细环 + 轻投影 */
+.info-avatar {
+  display: block;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #eef2f5;
+  box-shadow: 0 4px 12px rgba(31, 45, 61, .12);
+}
 </style>
