@@ -3,7 +3,7 @@
   import {useRouter} from 'vue-router'
   import {ref} from "vue";
   import {ElMessage} from "element-plus";
-
+  import captchaApi from "@/api/service/captcha.js";
   import adminApi from "@/api/admin/admin.js";
   const router = useRouter()
 
@@ -11,9 +11,11 @@
   //Lock 必须在这里显式导入，否则模板里的 :prefix-icon="Lock" 取到的是 undefined，密码框图标不会显示
   import {User, Lock, Shop, Goods, Menu, UserFilled, InfoFilled} from "@element-plus/icons-vue";
   const tokenStore = useTokenStore()
-  const admin = ref({
+  const loginInfoDTO = ref({
     name: '',
-    password: ''
+    password: '',
+    captcha: '',
+    uuid: ''
   })
   //表单引用，用于触发表单校验
   const formRef = ref(null)
@@ -27,6 +29,16 @@
     {icon: UserFilled, title: '权限管理', desc: '管理员账号与角色统一管理'}
   ]
 
+  //验证码图片地址，加时间戳参数防止浏览器缓存，点击图片刷新
+  const captchaSrc = ref('')
+  const refreshCaptcha = () => {
+    captchaApi.captcha().then(result => {
+      captchaSrc.value = result.data.captcha
+      loginInfoDTO.value.uuid = result.data.uuid
+    })
+  }
+  refreshCaptcha()
+
   const login = () => {
     if (loading.value) {
       return
@@ -38,13 +50,15 @@
         return
       }
       loading.value = true
-      adminApi.login(admin.value).then(result => {
+      adminApi.login(loginInfoDTO.value).then(result => {
         if (result.code === 1) {
           ElMessage.success(result.msg)
           tokenStore.setToken(result.data)
           router.push({path: '/'})
         } else {
           ElMessage.error(result.msg)
+          //验证码是一次性的，登录失败后刷新图片重新获取
+          refreshCaptcha()
         }
       }).finally(() => {
         //无论成功失败都要恢复按钮状态
@@ -110,14 +124,21 @@
           <p>欢迎回来，请输入管理员账号信息</p>
         </div>
 
-        <el-form class="form-login" ref="formRef" size="large" autocomplete="off" :model="admin" :rules="rules"
+        <el-form class="form-login" ref="formRef" size="large" autocomplete="off" :model="loginInfoDTO" :rules="rules"
                  @keyup.enter="login">
           <el-form-item prop="name">
-            <el-input :prefix-icon="User" placeholder="请输入用户名" v-model="admin.name" clearable></el-input>
+            <el-input :prefix-icon="User" placeholder="请输入用户名" v-model="loginInfoDTO.name" clearable></el-input>
           </el-form-item>
           <el-form-item prop="password">
             <el-input name="password" :prefix-icon="Lock" type="password" placeholder="请输入密码" show-password
-                      v-model="admin.password"></el-input>
+                      v-model="loginInfoDTO.password"></el-input>
+          </el-form-item>
+          <el-form-item prop="captcha">
+            <div class="captcha-row">
+              <el-input :prefix-icon="Key" placeholder="请输入验证码" v-model="loginInfoDTO.captcha"
+                        @keyup.enter="login"></el-input>
+              <img class="captcha-img" :src="captchaSrc" alt="验证码" title="点击刷新" @click="refreshCaptcha">
+            </div>
           </el-form-item>
           <el-form-item class="form-item-submit">
             <el-button class="login-button" type="primary" auto-insert-space :loading="loading" @click="login">登录
@@ -391,6 +412,34 @@
   :deep(.el-input__prefix),
   :deep(.el-input__suffix) {
     color: #9aa7b1;
+  }
+}
+
+/* 验证码行：输入框与验证码图片同行 */
+.captcha-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+
+  .el-input {
+    flex: 1;
+  }
+
+  .captcha-img {
+    flex: none;
+    height: 40px;
+    min-width: 110px;
+    border-radius: 10px;
+    border: 1px solid #e3eaee;
+    background-color: #fff;
+    object-fit: contain;
+    cursor: pointer;
+    transition: border-color .2s;
+
+    &:hover {
+      border-color: #14b8a6;
+    }
   }
 }
 

@@ -7,10 +7,13 @@ import com.situ.mall.common.utils.JwtUtil;
 import com.situ.mall.common.utils.PasswordUtil;
 import com.situ.mall.common.utils.Result;
 import com.situ.mall.pojo.dto.AdminPasswordDTO;
+import com.situ.mall.pojo.dto.LoginInfoDTO;
 import com.situ.mall.pojo.entity.Admin;
 import com.situ.mall.pojo.query.AdminQuery;
 import com.situ.mall.service.IAdminService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -31,16 +34,26 @@ public class AdminController {
 
     @Autowired
     private IAdminService adminService;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
 
     @PostMapping("/login")
-    public Result<String> login(@RequestBody Admin admin){
+    public Result<String> login(@RequestBody LoginInfoDTO loginInfoDTO){
+
+        String captcha = (String) redisTemplate.opsForValue().get("captcha:" + loginInfoDTO.getUuid());
+        if (!StringUtils.hasText(captcha)) {
+            return Result.error("验证码已过期");
+        }if(!captcha.equals(loginInfoDTO.getCaptcha())){
+            return Result.error("验证码错误");
+        }
+
         Admin dbAdmin = adminService.getOne(new LambdaQueryWrapper<Admin>()
-                        .eq(Admin::getName, admin.getName()));
+                        .eq(Admin::getName, loginInfoDTO.getName()));
         if(dbAdmin == null){
             return Result.error("用户名不存在");
         }
-        if(!PasswordUtil.matches(admin.getPassword(), dbAdmin.getPassword())){
+        if(!PasswordUtil.matches(loginInfoDTO.getPassword(), dbAdmin.getPassword())){
             return Result.error("密码错误");
         }
         /*if(!admin.getPassword().equals(dbAdmin.getPassword())){
