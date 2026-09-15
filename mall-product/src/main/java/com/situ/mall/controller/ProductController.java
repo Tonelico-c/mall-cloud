@@ -23,7 +23,7 @@ import java.util.Set;
  * @since 2026-09-08
  */
 @RestController
-@RequestMapping("/products")
+@RequestMapping("/product")
 public class ProductController {
     @Autowired
     private IProductService productService;

@@ -7,6 +7,6 @@ import java.util.Set;
 
 @FeignClient("product-service")
 public interface ProductClient {
-    @GetMapping("/products/selectAllImage")
+    @GetMapping("/product/selectAllImage")
     Set<String> selectAllImage();
 }

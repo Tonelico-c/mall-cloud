@@ -1,0 +1,31 @@
+server:
+  port: 8083
+spring:
+  application:
+    name: category-service
+  cloud:
+    nacos:
+      server-addr: 127.0.0.1:8848
+  datasource:
+    url: jdbc:mysql://localhost:3306/mall?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: "050622"
+  data:
+    redis:
+      database: 0
+      host: 127.0.0.1
+      port: 6379
+  cache:
+    type: redis
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #mybatis官方提供的控制台打印日志
+  type-aliases-package: com.situ.mall.pojo,com.situ.mall.admin.pojo
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+  #   logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+  #   logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)

@@ -1,0 +1,59 @@
+/* ==================== 主题变量 ==================== */
+/* 电商风格主题色：覆盖 element-plus 的主色变量，改成商城红 */
+:root {
+  --el-color-primary: #e4393c;
+  --el-color-primary-light-3: #ea6a6c;
+  --el-color-primary-light-5: #f1a1a2;
+  --el-color-primary-light-7: #f7cfd0;
+  --el-color-primary-light-8: #fae6e6;
+  --el-color-primary-light-9: #fcf1f1;
+  --el-color-primary-dark-2: #b62e31;
+
+  /* 页面背景色、卡片圆角 */
+  --app-bg: #f5f6f8;
+  --app-card-radius: 8px;
+}
+
+/* ==================== 基础重置 ==================== */
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  background-color: #e9ebee;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC',
+      'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  /* 禁止长按选择文字，接近原生App的手感 */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+img {
+  display: block;
+}
+
+/* ==================== 应用容器 ==================== */
+/* 手机端应用宽度：在电脑浏览器打开时居中显示，模拟手机宽度 */
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background-color: var(--app-bg);
+}
+
+/* element-plus 的弹窗/消息框在小屏幕上不要超宽 */
+.el-dialog {
+  max-width: 92vw;
+}
+
+.el-message-box {
+  max-width: 88vw;
+}
+
+/* 让消息提示在手机上更醒目 */
+.el-message {
+  min-width: auto;
+}

@@ -1,0 +1,71 @@
+/* ==================== 通用工具类 ==================== */
+
+/* 单行省略号 */
+.ellipsis-1 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 两行省略号 */
+.ellipsis-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* 固定定位的底部栏在电脑浏览器上也要限制在应用宽度内居中 */
+.app-fixed {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+}
+
+/* 白色卡片 */
+.card {
+  background-color: #fff;
+  border-radius: var(--app-card-radius);
+}
+
+/* 价格文字 */
+.price {
+  color: var(--el-color-primary);
+  font-weight: 600;
+}
+
+/* ==================== 页面留白 ==================== */
+/* 有底部TabBar的页面，内容给导航留出空间 */
+.pb-tab {
+  padding-bottom: calc(60px + env(safe-area-inset-bottom));
+}
+
+/* 底部只有一条操作栏的页面（如商品详情） */
+.pb-action {
+  padding-bottom: calc(60px + env(safe-area-inset-bottom));
+}
+
+/* 购物车页面底部是两条栏（结算栏+TabBar） */
+.pb-action-double {
+  padding-bottom: calc(118px + env(safe-area-inset-bottom));
+}
+
+/* ==================== 列表加载 ==================== */
+.list-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 0;
+  color: #999;
+  font-size: 13px;
+}
+
+.list-finished {
+  text-align: center;
+  padding: 12px 0;
+  color: #c0c4cc;
+  font-size: 12px;
+}
