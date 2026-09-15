@@ -16,6 +16,7 @@
         <module>mall-gateway</module>
         <module>mall-api</module>
         <module>mall-service</module>
+        <module>mall-user</module>
     </modules>
 
     <!-- 指定父工程 -->

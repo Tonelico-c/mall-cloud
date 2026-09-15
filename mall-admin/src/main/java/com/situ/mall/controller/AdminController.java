@@ -58,9 +58,6 @@ public class AdminController {
         if(!PasswordUtil.matches(loginInfoDTO.getPassword(), dbAdmin.getPassword())){
             return Result.error("密码错误");
         }
-        /*if(!admin.getPassword().equals(dbAdmin.getPassword())){
-            return Result.error("密码错误");
-        }*/
         if(dbAdmin.getStatus() == 0){
             return Result.error("账号已禁用");
         }
