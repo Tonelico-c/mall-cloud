@@ -9,13 +9,26 @@
   const router = useRouter()
   import {useTokenStore} from '@/store/token.js'
   import {useCartCountStore} from '@/store/cartCount.js'
+  import captchaApi from "@/api/service/captcha.js";
   const tokenStore = useTokenStore();
   const cartCountStore = useCartCountStore()
 
   const loginInfo = ref({
     name: '',
-    password: ''
+    password: '',
+    captcha: '',
+    uuid: ''
   })
+  //验证码图片地址，加时间戳参数防止浏览器缓存，点击图片刷新
+  const captchaSrc = ref('')
+  const refreshCaptcha = () => {
+    captchaApi.captcha().then(result => {
+      captchaSrc.value = result.data.captcha
+      loginInfo.value.uuid = result.data.uuid
+    })
+  }
+
+  refreshCaptcha()
 
   const login = () => {
     userApi.login(loginInfo.value).then(result => {
@@ -28,6 +41,7 @@
         router.push(route.query.redirect || '/')
       } else {
         ElMessage.error(result.msg || '登录失败')
+        refreshCaptcha()
       }
     })
   }
@@ -71,6 +85,13 @@
       <el-form-item prop="password">
         <el-input name="password" :prefix-icon="Lock" type="password" placeholder="请输入密码"
                   v-model="loginInfo.password" @keyup.enter="submit(form)"></el-input>
+      </el-form-item>
+      <el-form-item prop="captcha">
+        <div class="captcha-row">
+          <el-input :prefix-icon="Key" placeholder="请输入验证码" v-model="loginInfo.captcha"
+                    @keyup.enter="login"></el-input>
+          <img class="captcha-img" :src="captchaSrc" alt="验证码" title="点击刷新" @click="refreshCaptcha">
+        </div>
       </el-form-item>
       <el-form-item>
         <el-button class="login-button" type="primary" auto-insert-space @click="submit(form)">登录</el-button>
@@ -119,5 +140,32 @@
   .login-button {
     width: 100%;
     border-radius: 22px;
+  }
+  /* 验证码行：输入框与验证码图片同行 */
+  .captcha-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+
+    .el-input {
+      flex: 1;
+    }
+
+    .captcha-img {
+      flex: none;
+      height: 40px;
+      min-width: 110px;
+      border-radius: 10px;
+      border: 1px solid #e3eaee;
+      background-color: #fff;
+      object-fit: contain;
+      cursor: pointer;
+      transition: border-color .2s;
+
+      &:hover {
+        border-color: #14b8a6;
+      }
+    }
   }
 </style>

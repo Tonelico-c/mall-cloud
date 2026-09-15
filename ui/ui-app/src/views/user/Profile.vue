@@ -66,7 +66,7 @@
 
     <!-- 头像上传 -->
     <div class="avatar-area">
-      <el-upload class="avatar-uploader" action="/api/product/upload" :show-file-list="false"
+      <el-upload class="avatar-uploader" action="/api/service/upload" :show-file-list="false"
                  :on-success="handleAvatarSuccess" :headers="{Authorization: tokenStore.token}">
         <img v-if="user.avatar" class="avatar" :src="formatImage(user.avatar)" alt="头像">
         <div v-else class="avatar avatar-default">

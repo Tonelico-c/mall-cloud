@@ -10,7 +10,9 @@ import com.situ.mall.utils.JwtUtil;
 import com.situ.mall.utils.LoginContext;
 import com.situ.mall.utils.PasswordUtil;
 import com.situ.mall.utils.Result;
+import io.lettuce.core.RedisCommandTimeoutException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,12 +33,19 @@ public class UserController {
 
     @Autowired
     private IUserService userService;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @MyLog(module = "用户: 登录")
     @PostMapping("/login")
     public Result<String> login(@RequestBody LoginInfoDTO loginInfoDTO){
-
-
+        String captcha = (String) redisTemplate.opsForValue().get("captcha:" + loginInfoDTO.getUuid());
+        if (!StringUtils.hasText(captcha)) {
+            return Result.error("验证码已过期");
+        }if(!captcha.equals(loginInfoDTO.getCaptcha())){
+            return Result.error("验证码错误");
+        }
+        
         User dbUser = userService.getOne(new LambdaQueryWrapper<User>()
                 .eq(User::getName, loginInfoDTO.getName()));
         if(dbUser == null){
@@ -67,6 +76,7 @@ public class UserController {
         return Result.ok(user);
     }
 
+    @MyLog(module = "用户: 修改信息")
     @PutMapping
     public Result update(@RequestBody User user){
         Long id = (Long) LoginContext.getLoginInfo().get("id");
