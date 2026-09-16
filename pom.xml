@@ -17,6 +17,7 @@
         <module>mall-api</module>
         <module>mall-service</module>
         <module>mall-user</module>
+        <module>mall-cart</module>
     </modules>
 
     <!-- 指定父工程 -->
