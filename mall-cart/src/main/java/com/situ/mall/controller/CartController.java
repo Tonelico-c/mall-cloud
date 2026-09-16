@@ -41,5 +41,10 @@ public class CartController {
         cartService.update(cart);
         return Result.ok("更新成功");
     }
+    @DeleteMapping("/{id}")
+    public Result delete(@PathVariable Long id){
+        cartService.removeById(id);
+        return Result.ok("删除成功");
+    }
 }
 
