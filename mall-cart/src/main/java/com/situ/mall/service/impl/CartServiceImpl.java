@@ -1,13 +1,21 @@
 package com.situ.mall.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.situ.mall.api.pojo.Product;
+import com.situ.mall.api.product.ProductClient;
 import com.situ.mall.pojo.entity.Cart;
 import com.situ.mall.mapper.CartMapper;
+import com.situ.mall.pojo.vo.CartVO;
 import com.situ.mall.service.ICartService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.situ.mall.utils.LoginContext;
+import com.situ.mall.utils.Result;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * <p>
@@ -22,7 +30,10 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements IC
 
     @Autowired
     private CartMapper cartMapper;
+    @Autowired
+    private ProductClient productClient;
     @Override
+    @Transactional
     public void add(Cart cart) {
         // 获取当前登录用户id
         Long userId = (Long) LoginContext.getLoginInfo().get("id");
@@ -41,5 +52,29 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements IC
             // 购物车不存在，新增
             cartMapper.insert(cart);
         }
+    }
+
+    @Override
+    public List<CartVO> listVO() {
+        Long userId = (Long) LoginContext.getLoginInfo().get("id");
+        List<Cart> cartList = cartMapper.selectList(new LambdaQueryWrapper<Cart>().eq(Cart::getUserId, userId));
+        List<CartVO> cartVOList = cartList.stream().map(cart -> {
+            CartVO cartVO = new CartVO();
+            BeanUtils.copyProperties(cart, cartVO);
+            // 远程调用获取商品信息
+            Result<Product> productResult = productClient.selectById(cart.getProductId());
+            if (productResult.getCode() == Result.OK) {
+                cartVO.setProduct(productResult.getData());
+            }
+            return cartVO;
+        }).toList();
+        return cartVOList;
+    }
+
+    @Override
+    public void update(Cart cart) {
+        Long userId = (Long) LoginContext.getLoginInfo().get("id");
+        cart.setUserId(userId);
+        cartMapper.updateById(cart);
     }
 }

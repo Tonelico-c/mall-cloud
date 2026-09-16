@@ -43,3 +43,7 @@ spring:
           uri: lb://cart-service
           predicates:
             - Path=/cart/**
+        - id: shipping-service
+          uri: lb://shipping-service
+          predicates:
+            - Path=/shipping/**
