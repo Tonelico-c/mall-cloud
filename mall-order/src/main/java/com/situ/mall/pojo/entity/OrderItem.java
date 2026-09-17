@@ -1,4 +1,4 @@
-package com.situ.mall.pojo;
+package com.situ.mall.pojo.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;

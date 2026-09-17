@@ -1,6 +1,6 @@
 package com.situ.mall.mapper;
 
-import com.situ.mall.pojo.OrderItem;
+import com.situ.mall.pojo.entity.OrderItem;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

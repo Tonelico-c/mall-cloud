@@ -1,4 +1,4 @@
-package com.situ.mall.api.pojo;
+package com.situ.mall.api.pojo.entity;
 
 
 import lombok.Data;

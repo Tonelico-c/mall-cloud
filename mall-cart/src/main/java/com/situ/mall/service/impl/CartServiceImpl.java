@@ -1,7 +1,7 @@
 package com.situ.mall.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.situ.mall.api.pojo.Product;
+import com.situ.mall.api.pojo.entity.Product;
 import com.situ.mall.api.product.ProductClient;
 import com.situ.mall.pojo.entity.Cart;
 import com.situ.mall.mapper.CartMapper;

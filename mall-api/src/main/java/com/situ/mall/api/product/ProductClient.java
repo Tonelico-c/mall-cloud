@@ -1,6 +1,6 @@
 package com.situ.mall.api.product;
 
-import com.situ.mall.api.pojo.Product;
+import com.situ.mall.api.pojo.entity.Product;
 import com.situ.mall.utils.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
