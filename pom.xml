@@ -19,6 +19,7 @@
         <module>mall-user</module>
         <module>mall-cart</module>
         <module>mall-shipping</module>
+        <module>mall-order</module>
     </modules>
 
     <!-- 指定父工程 -->
