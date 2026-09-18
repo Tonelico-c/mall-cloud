@@ -2,6 +2,9 @@ package com.situ.mall.mapper;
 
 import com.situ.mall.pojo.entity.Order;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.situ.mall.pojo.vo.OrderVO;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 public interface OrderMapper extends BaseMapper<Order> {
 
+    List<OrderVO> listItem(Long userId);
 }

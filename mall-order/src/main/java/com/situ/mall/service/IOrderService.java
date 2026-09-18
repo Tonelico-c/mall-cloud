@@ -2,6 +2,9 @@ package com.situ.mall.service;
 
 import com.situ.mall.pojo.entity.Order;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.situ.mall.pojo.vo.OrderVO;
+
+import java.util.List;
 
 /**
  * <p>
@@ -14,4 +17,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface IOrderService extends IService<Order> {
 
     void add(Order order);
+
+    List<OrderVO> listItem();
 }

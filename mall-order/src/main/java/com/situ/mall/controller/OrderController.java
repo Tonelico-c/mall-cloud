@@ -2,15 +2,14 @@ package com.situ.mall.controller;
 
 
 import com.situ.mall.pojo.entity.Order;
+import com.situ.mall.pojo.vo.OrderVO;
 import com.situ.mall.service.IOrderService;
 import com.situ.mall.utils.Result;
 import lombok.experimental.Accessors;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
-import org.springframework.web.bind.annotation.RestController;
+import java.util.List;
 
 /**
  * <p>
@@ -33,5 +32,10 @@ public class OrderController {
         return Result.ok("添加成功");
     }
 
+    @GetMapping
+    public Result<List<OrderVO>> list(){
+        List<OrderVO> orderList = orderService.listItem();
+        return Result.ok(orderList);
+    }
 }
 

@@ -9,12 +9,14 @@ import com.situ.mall.mapper.OrderItemMapper;
 import com.situ.mall.pojo.entity.OrderItem;
 import com.situ.mall.pojo.entity.Order;
 import com.situ.mall.mapper.OrderMapper;
+import com.situ.mall.pojo.vo.OrderVO;
 import com.situ.mall.service.IOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.situ.mall.utils.LoginContext;
 import com.situ.mall.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -38,6 +40,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     private OrderItemMapper orderItemMapper;
 
     @Override
+    @Transactional
     public void add(Order order) {
         Long userId = (Long) LoginContext.getLoginInfo().get("id");
         order.setUserId(userId);
@@ -81,5 +84,15 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         }
         order.setPayment(payment);
 
+        //清除购物车已经下单的商品
+        selectedCartVOList.forEach(cartVO -> {
+            cartClient.deletedById(cartVO.getId());
+        });
+    }
+
+    @Override
+    public List<OrderVO> listItem() {
+        Long userId = (Long) LoginContext.getLoginInfo().get("id");
+        return orderMapper.listItem(userId);
     }
 }
