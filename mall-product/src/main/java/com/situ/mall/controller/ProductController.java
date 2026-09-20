@@ -69,5 +69,11 @@ public class ProductController {
         productService.removeByIds(Arrays.asList(ids));
         return Result.ok("删除成功");
     }
+
+    @PutMapping("/decreaseStock")
+    Result<?> decreaseStock(@RequestParam("id") Long id, @RequestParam("count") Integer count){
+        productService.decreaseStock(id, count);
+        return Result.ok("库存减少成功");
+    }
 }
 

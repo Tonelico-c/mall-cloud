@@ -2,6 +2,7 @@ package com.situ.mall.service.impl;
 
 import com.situ.mall.api.cart.CartClient;
 import com.situ.mall.api.pojo.vo.CartVO;
+import com.situ.mall.api.product.ProductClient;
 import com.situ.mall.enums.OrderStatus;
 import com.situ.mall.enums.PaymentType;
 import com.situ.mall.exception.ServiceException;
@@ -38,6 +39,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     private CartClient cartClient;
     @Autowired
     private OrderItemMapper orderItemMapper;
+    @Autowired
+    private ProductClient productClient;
 
     @Override
     @Transactional
@@ -50,19 +53,34 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         if(result.getCode() == Result.ERROR){
             throw new ServiceException("生成订单失败");
         }
-        order.setStatus(OrderStatus.UNPAID.getCode());
-        order.setPaymentType(PaymentType.WECHAT.getCode()); // 微信支付
-        order.setPostage(0); // 邮费为0
         List<CartVO> cartVOList = result.getData();
         List<CartVO> selectedCartVOList = cartVOList.stream()
-                .filter(cartVO -> cartVO.getSelected() == 1)
+                .filter(cartVO -> cartVO.getProduct() != null && cartVO.getSelected() == 1)
                 .toList();
+        if(selectedCartVOList.isEmpty()){
+            throw new ServiceException("购物车没有选中商品");
+        }
         //把当先用户购物车里面勾选的这些商品插入order_item
         BigDecimal payment = BigDecimal.ZERO;
         for (CartVO cartVO : selectedCartVOList) {
+            // 判断库存是否充足，如果充足，则继续相关业务，如果库存不足，抛出异常
+            if(cartVO.getProduct().getStock() < cartVO.getCount()){
+                throw new ServiceException("库存不足");
+            }
             payment = payment.add(cartVO.getProduct().getPrice().multiply(BigDecimal.valueOf(cartVO.getCount())));
         }
+        // 先减少商品的库存，然后再生成订单
+        selectedCartVOList.forEach(cartVO -> {
+            Result<Void> stockResult = productClient.decreaseStock(cartVO.getProductId(), cartVO.getCount());
+            if(stockResult.getCode() != Result.OK){
+                throw new ServiceException("库存不足");
+            }
+        });
         order.setPayment(payment);
+        // 设置订单的一些基本信息
+        order.setStatus(OrderStatus.UNPAID.getCode());
+        order.setPaymentType(PaymentType.WECHAT.getCode()); // 微信支付
+        order.setPostage(0); // 邮费为0
         orderMapper.insert(order);
 
         for (CartVO cartVO : selectedCartVOList) {
@@ -82,7 +100,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
             orderItemMapper.insert(orderItem);
         }
-        order.setPayment(payment);
 
         //清除购物车已经下单的商品
         selectedCartVOList.forEach(cartVO -> {

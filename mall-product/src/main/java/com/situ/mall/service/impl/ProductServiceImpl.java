@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.situ.mall.api.category.CategoryClient;
+import com.situ.mall.exception.ServiceException;
 import com.situ.mall.pojo.entity.Product;
 import com.situ.mall.mapper.ProductMapper;
 import com.situ.mall.pojo.query.ProductQuery;
@@ -101,6 +102,22 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
                 .filter(image -> !ObjectUtils.isEmpty(image))
                 .map(image -> image.substring(image.lastIndexOf("/") + 1))
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    @CacheEvict(value = "productCache", key = "#id")
+    public void decreaseStock(Long id, Integer count) {
+        Product product = productMapper.selectById(id);
+        if (product == null) {
+            throw new ServiceException("商品不存在");
+        }
+        if(count < 0){
+            throw new ServiceException("数量不合法");
+        }
+        int result = productMapper.decreaseStock(id, count);
+        if(result == 0){
+            throw new ServiceException("该商品库存不足");
+        }
     }
 
 

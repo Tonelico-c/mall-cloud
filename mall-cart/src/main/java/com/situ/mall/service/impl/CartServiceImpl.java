@@ -3,6 +3,7 @@ package com.situ.mall.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.situ.mall.api.pojo.entity.Product;
 import com.situ.mall.api.product.ProductClient;
+import com.situ.mall.exception.ServiceException;
 import com.situ.mall.pojo.entity.Cart;
 import com.situ.mall.mapper.CartMapper;
 import com.situ.mall.pojo.vo.CartVO;
@@ -35,15 +36,26 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements IC
     @Override
     @Transactional
     public void add(Cart cart) {
+        if(cart.getCount() == null || cart.getCount() < 1){
+            throw new ServiceException("购买数量不合法!!!");
+        }
         // 获取当前登录用户id
         Long userId = (Long) LoginContext.getLoginInfo().get("id");
         cart.setUserId(userId);
-
-        LambdaQueryWrapper<Cart> queryWrapper = new LambdaQueryWrapper<>();
         // 根据用户id和商品id查询购物车
+        LambdaQueryWrapper<Cart> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Cart::getUserId, userId)
                      .eq(Cart::getProductId, cart.getProductId());
         Cart dbCart = cartMapper.selectOne(queryWrapper);
+        // 判断加入购物车的商品的库存是否足够
+        Product product = productClient.selectById(cart.getProductId()).getData();
+        if(product == null){
+            throw new ServiceException("商品不存在");
+        }
+        int productStock = (dbCart == null) ? 0 : dbCart.getCount();
+        if (product.getStock() < productStock + cart.getCount()){
+            throw new ServiceException("库存不足");
+        }
         if (dbCart != null) {
             // 购物车已存在，更新数量
             dbCart.setCount(dbCart.getCount() + cart.getCount());

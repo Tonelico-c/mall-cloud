@@ -13,4 +13,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 public interface ProductMapper extends BaseMapper<Product> {
 
+    int decreaseStock(Long id, Integer count);
 }

@@ -27,4 +27,6 @@ public interface IProductService extends IService<Product> {
     void update(Product product);
 
     Set<String> selectAllImage();
+
+    void decreaseStock(Long id, Integer count);
 }
