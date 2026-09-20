@@ -1,7 +1,7 @@
 <script setup>
   //定义数据模型
   import {ref} from "vue";
-  import {User, Lock, ShoppingCart} from "@element-plus/icons-vue";
+  import {User, Lock, ShoppingCart, Key} from "@element-plus/icons-vue";
   import userApi from "@/api/user/user.js";
   import {ElMessage} from "element-plus";
   import {useRoute, useRouter} from 'vue-router'
@@ -38,7 +38,9 @@
         //登录后刷新购物车角标
         cartCountStore.refreshCount()
         //跳回原本想访问的页面，没有则去首页
-        router.push(route.query.redirect || '/')
+        //redirect若指向登录页自身（redirect被污染的异常情况），回退到首页，避免停留在登录页
+        const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
+        router.push(redirect && !redirect.startsWith('/login') ? redirect : '/')
       } else {
         ElMessage.error(result.msg || '登录失败')
         refreshCaptcha()
