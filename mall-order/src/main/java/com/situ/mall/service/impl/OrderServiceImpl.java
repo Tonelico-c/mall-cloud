@@ -1,8 +1,12 @@
 package com.situ.mall.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.situ.mall.api.cart.CartClient;
 import com.situ.mall.api.pojo.vo.CartVO;
 import com.situ.mall.api.product.ProductClient;
+import com.situ.mall.config.RabbitMQConfig;
+import com.situ.mall.constant.MqConstant;
 import com.situ.mall.enums.OrderStatus;
 import com.situ.mall.enums.PaymentType;
 import com.situ.mall.exception.ServiceException;
@@ -13,13 +17,21 @@ import com.situ.mall.mapper.OrderMapper;
 import com.situ.mall.pojo.vo.OrderVO;
 import com.situ.mall.service.IOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.situ.mall.util.MultiDelayMessage;
 import com.situ.mall.utils.LoginContext;
 import com.situ.mall.utils.Result;
+import lombok.extern.slf4j.Slf4j;
+import net.minidev.json.writer.UpdaterMapper;
+import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessagePostProcessor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -30,6 +42,7 @@ import java.util.List;
  * @author Gao
  * @since 2026-09-17
  */
+@Slf4j
 @Service
 public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements IOrderService {
 
@@ -41,6 +54,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     private OrderItemMapper orderItemMapper;
     @Autowired
     private ProductClient productClient;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     @Transactional
@@ -105,11 +120,58 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         selectedCartVOList.forEach(cartVO -> {
             cartClient.deletedById(cartVO.getId());
         });
-    }
 
+        // 发送延时消息,延时的总时长由延迟梯度累加得到,可按业务需要调整
+        MultiDelayMessage<Long> multiDelayMessage  = new MultiDelayMessage<>(order.getOrderNo(),10000L, 10000L, 10000L, 15000L, 15000L, 30000L, 30000L);
+        Long delay = multiDelayMessage .removeNextDelay();
+        rabbitTemplate.convertAndSend(MqConstant.DELAY_EXCHANGE, MqConstant.DELAY_ORDER_ROUTING_KEY, multiDelayMessage, new MessagePostProcessor() {
+            @Override
+            public Message postProcessMessage(Message message) throws AmqpException {
+                message.getMessageProperties().setDelay(delay.intValue());
+                return message;
+            }
+        });
+    }
     @Override
     public List<OrderVO> listItem() {
         Long userId = (Long) LoginContext.getLoginInfo().get("id");
         return orderMapper.listItem(userId);
+    }
+
+    /**
+     * 取消订单并回补库存
+     * 只允许把"未付款"状态的订单改成"已取消",以影响行数作为幂等闸门,
+     * 保证无论消息重复投递多少次,关单和回补库存都只执行一次
+     */
+    @Override
+    public void cancelOrder(Long orderNo) {
+        // 1.带状态条件的更新,只有从"未付款"才能改成"已取消"
+        UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("order_no", orderNo)
+                .eq("status", OrderStatus.UNPAID.getCode())
+                .set("status", OrderStatus.CANCELLED.getCode())
+                .set("close_time", new Date());
+        int rows = orderMapper.update(updateWrapper);
+        if (rows == 0) {
+            // 订单不存在/已经被取消过/已经支付,直接结束,防止库存被重复回补
+            return;
+        }
+
+        // 2.查出该订单的所有明细,一个订单可能包含多件商品
+        List<OrderItem> orderItemList = orderItemMapper.selectList(
+                new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderNo, orderNo));
+
+        // 3.逐条回补库存
+        for (OrderItem orderItem : orderItemList) {
+            try {
+                Result<Void> stockResult = productClient.increaseStock(orderItem.getProductId(), orderItem.getQuantity());
+                if (stockResult.getCode() != Result.OK) {
+                    log.error("库存回补失败, orderNo={}, productId={}", orderNo, orderItem.getProductId());
+                }
+            } catch (Exception e) {
+                // 关单的幂等闸门已经关闭,这里抛异常也补不回来,所以只记录日志,不影响其它商品回补
+                log.error("库存回补异常, orderNo={}, productId={}", orderNo, orderItem.getProductId(), e);
+            }
+        }
     }
 }

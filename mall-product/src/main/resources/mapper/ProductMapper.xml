@@ -7,4 +7,10 @@
         SET stock = stock - #{count}
         WHERE id = #{id} AND stock >= #{count} AND deleted = 0 AND status = 1
     </update>
+    <!-- 回补库存不能要求商品还在上架状态：商品下单后被下架时，库存依然必须回补，否则库存永久丢失 -->
+    <update id="increaseStock">
+        UPDATE product
+        SET stock = stock + #{count}
+        WHERE id = #{id} AND deleted = 0
+    </update>
 </mapper>

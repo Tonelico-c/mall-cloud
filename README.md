@@ -12,6 +12,7 @@
 | 微服务 | Spring Cloud 2022.0.2、Spring Cloud Alibaba 2022.0.0.0-RC2、Nacos（注册中心）、Spring Cloud Gateway（网关）、OpenFeign（服务调用） |
 | 持久层 | MyBatis-Plus 3.5.5（分页插件、逻辑删除、字段自动填充）、MySQL 8.0.31、手写 XML 联表查询 |
 | 缓存 | Spring Cache + Redis（商品详情缓存，TTL 1 小时） |
+| 消息队列 | RabbitMQ（`x-delayed-message` 延时插件 + 延迟梯度重投，处理超时未支付订单） |
 | 认证 | JWT（java-jwt 4.4.0）+ Redis 验证码 + BCrypt 密码哈希 |
 | 其他 | 阿里云 OSS（文件上传）、kaptcha（图形验证码）、Lombok |
 | 管理后台 | Vue 3 + Vite + Element Plus + Pinia + Axios（`ui/ui-admin`，端口 5173） |
@@ -29,7 +30,7 @@
 | mall-user | user-service | 8085 | 用户注册登录、个人信息 |
 | mall-cart | cart-service | 8086 | 购物车增删改查 |
 | mall-shipping | shipping-service | 8087 | 收货地址管理 |
-| mall-order | order-service | 8088 | 订单与订单明细、下单主流程 |
+| mall-order | order-service | 8088 | 订单与订单明细、下单主流程、超时未支付自动关单（延时消息） |
 | mall-common | — | — | 公共依赖：`Result` 统一返回、全局异常、JWT / 密码 / OSS 工具、登录上下文、操作日志切面、MyBatis-Plus 与 Redis 配置 |
 | mall-api | — | — | 服务间调用契约：Feign 客户端接口（`ProductClient` / `CartClient` / `CategoryClient` / `AdminClient`）+ 跨服务 DTO / VO |
 
@@ -77,17 +78,38 @@
 ```xml
 <update id="decreaseStock">
     UPDATE product SET stock = stock - #{count}
-    WHERE id = #{id} AND stock >= #{count} AND deleted = 0
+    WHERE id = #{id} AND stock >= #{count} AND deleted = 0 AND status = 1
+</update>
+<update id="increaseStock">
+    UPDATE product SET stock = stock + #{count}
+    WHERE id = #{id} AND deleted = 0
 </update>
 ```
 
 - 由数据库行锁保证并发原子性：库存不足时 `WHERE` 不成立，影响行数为 0；
 - Mapper 返回 `int`（影响行数），Service 层判断为 0 时抛 `ServiceException("该商品库存不足")`；
-- 扣减成功后通过 `@CacheEvict(value = "productCache", key = "#id")` 清除商品缓存，避免后续校验读到旧库存。
+- 扣减成功后通过 `@CacheEvict(value = "productCache", key = "#id")` 清除商品缓存，避免后续校验读到旧库存；
+- 回补库存的 `increaseStock` 刻意**不校验** `status = 1`：商品下单后若被管理员下架，库存依然必须回补，否则这部分库存会永久丢失。
 
 **跨服务调用的返回值陷阱**：下游服务抛出的异常会被 `GlobalExceptionHandler` 统一包装成 `Result(code=0)` 并返回 **HTTP 200**，Feign 因此不会抛异常。若不判断返回码，订单服务会误认为扣减成功而继续下单 → 超卖。因此 `OrderServiceImpl` 必须显式校验 `stockResult.getCode() != Result.OK`。
 
-### 3. 网关统一鉴权
+### 3. 超时未支付自动关单（RabbitMQ 延时消息）
+
+下单成功后（`OrderServiceImpl#add` 末尾）向延时交换机 `trade.delay.topic` 发送一条延时消息（消息体就是订单号），到期后由 `mall-order` 的 `OrderStatusListener` 消费：
+
+- **延时实现**：使用 `rabbitmq_delayed_message_exchange` 插件（`@Exchange(delayed = "true")` + `MessageProperties#setDelay`），而不是 TTL + 死信队列——后者要为每个延时档位单独建一条队列，做梯度延时时队列数量会爆炸；
+- **延迟梯度**：消息体 `MultiDelayMessage<Long>` 携带一组递进的延迟时间，每跳消费后 `removeNextDelay()` 取下一位，并以新的 `x-delay` 重新投递。好处是用户中途付款后，**下一跳发现订单已不是「未付款」就直接短路**，不必等满整个延时周期，也不会误伤已支付的订单。总时长由梯度累加得到，在 `OrderServiceImpl#add` 里配置；
+- **消费逻辑**：先 `getById` 查订单，状态不是「未付款」直接丢弃并 ack；还有剩余梯度就继续投递；梯度耗尽才真正关单；
+- **关单 + 回补库存**：`cancelOrder` 用**带状态条件的 UPDATE**（`WHERE order_no = ? AND status = 1`）把订单改为「已取消」，并**以影响行数作为幂等闸门**——返回 0 说明订单不存在 / 已取消过 / 已支付，直接结束，避免消息重复消费导致库存被重复回补；随后查出该订单的**全部**明细（`selectList`，而不是 `selectOne`），逐条调用商品服务的 `increaseStock` 回补库存。
+
+> **两个坑（都已处理）**：
+>
+> 1. 查订单明细**必须用 `selectList`**。一个订单对应多条 `order_item`，MyBatis-Plus 的 `selectOne` 查到多条会直接抛异常；而状态更新在它之前、且不在事务里（自动提交），结果是「订单已取消、库存一件都没回」，消息重投时又被状态判断挡住，库存永久丢失。
+> 2. `cancelOrder` **刻意不加 `@Transactional`**。`ProductClient#increaseStock` 是跨服务远程调用，不受本地事务控制；若加上事务，回补某件商品失败时订单状态会被回滚成「未付款」，而**商品库存已经加过了**，下次重投就是双倍回补。正确做法是先原子地关单（保证只关一次），再逐条回补，并对失败记 error 日志。
+>
+> 消费端使用 Spring AMQP 默认的自动 ACK：方法正常返回即 ack，抛异常则消息重回队列重试；由于关单本身是幂等的，重复投递不会造成重复回补。
+
+### 4. 网关统一鉴权
 
 - 网关基于 WebFlux 响应式栈，使用 `GlobalFilter`（`AuthGlobalFilter`）而非 `HandlerInterceptor` 完成全局 JWT 校验；
 - 白名单：`/service/captcha`、`/admin/login`、`/user/login`；其余请求必须在 `Authorization` 头携带有效 token（裸 token，无 `Bearer ` 前缀），校验失败直接返回 401；
@@ -95,13 +117,13 @@
 - 下游由 `LoginInterceptor` 取出并存入 `LoginContext`（ThreadLocal），业务代码零侵入获取当前登录用户，请求结束后在 `afterCompletion` 清理，避免线程复用串号；
 - Feign 调用时由 `mall-api` 的 `DefaultFeignConfig` 注册 `RequestInterceptor`，把 `LoginContext` 中的用户信息继续透传给下游服务。
 
-### 4. 缓存
+### 5. 缓存
 
 - `ProductServiceImpl#selectById` 标注 `@Cacheable(value = "productCache", key = "#id")`，商品详情优先命中 Redis；
-- 商品的更新、删除、库存扣减均标注 `@CacheEvict` 主动失效，保证缓存与数据库一致；
+- 商品的更新、删除、库存扣减与回补均标注 `@CacheEvict` 主动失效，保证缓存与数据库一致；
 - 配置：`spring.cache.redis.time-to-live = 3600000`（1 小时）、`cache-null-values = true`（缓存空值，防缓存穿透）。
 
-### 5. 操作日志
+### 6. 操作日志
 
 `@MyLog(module = "...")` 注解 + `OperLogAspect` 切面（AOP）自动记录：操作人、模块、请求 URI、请求参数（`password` 自动脱敏为 `*`）、客户端 IP、User-Agent、操作系统与浏览器、执行耗时、异常信息，统一落库 `oper_log` 表。切面内用 ThreadLocal 在 `@Before`、`@AfterReturning` / `@AfterThrowing` 之间传递日志对象。
 
@@ -124,10 +146,17 @@
 - MySQL 8：创建数据库 `mall` 并导入表结构（见下方「数据库表」）
 - Redis：默认 `127.0.0.1:6379`
 - Nacos：默认 `127.0.0.1:8848`（需先启动，否则服务注册失败）
+- RabbitMQ：默认 `127.0.0.1:5672`（guest / guest），**必须启用延时消息插件**，否则 `mall-order` 声明延时交换机与队列时失败，服务无法启动：
+
+  ```bash
+  rabbitmq-plugins enable rabbitmq_delayed_message_exchange
+  ```
+
+  只有 `mall-order` 引入了 `spring-boot-starter-amqp`，不启动 RabbitMQ 时其余服务仍可正常运行（仅「超时未支付自动关单」功能不可用）。
 
 ### 1. 修改配置
 
-各服务 `src/main/resources/application.yml` 中的数据库账号密码、Redis 与 Nacos 地址按本机情况调整。
+各服务 `src/main/resources/application.yml` 中的数据库账号密码、Redis 与 Nacos 地址按本机情况调整；`mall-order` 另有 `spring.rabbitmq` 连接信息（默认 `127.0.0.1:5672`，guest / guest）。
 
 ### 2. 启动后端
 
@@ -190,14 +219,13 @@ mall
 
 ## 九、TODO
 
-- [ ] **接入 RabbitMQ 延迟队列，处理超时未支付订单**（重点待办）
-  - 业务问题：下单即扣库存，若用户一直不付款，库存会被无效订单长期占用（少卖）
-  - 方案（TTL + 死信队列）：订单创建成功后发送延迟消息（消息体为订单号，TTL 30 分钟）→ 到期成为死信并路由到死信队列 → 订单服务消费后**先查订单状态**，若仍未支付则关闭订单并调用商品服务**回补库存**；已支付 / 已取消则直接丢弃
-  - 配套改动：商品服务新增与扣减库存对称的 `increaseStock` 接口（`UPDATE product SET stock = stock + #{count} WHERE id = #{id}`）并清除商品缓存
-  - 可靠性要求：消费端手动 ACK；以订单状态做**幂等**判断，避免重复消费导致库存被重复回补；消息发送失败需有兜底记录
-- [ ] 库存扣减接口补充参数校验（`count <= 0` 时应拒绝，避免传入负数导致库存反向增加）
-- [ ] `ProductMapper#decreaseStock` 为参数补 `@Param("id")` / `@Param("count")`（当前依赖编译参数名，显式标注更稳妥）
-- [ ] 订单模块补充：订单详情、取消订单、支付回调等后续状态流转（当前仅支持下单与列表查询）
+- [x] **接入 RabbitMQ 延时消息，处理超时未支付订单**（已实现，详见「核心流程 3」）
+- [ ] **库存回补失败的补偿重试**：`cancelOrder` 目前逐条回补库存，某一条失败只记 error 日志、不会重试——关单的幂等闸门已经关闭，消息重投也补不回来。要做到自动补偿，需给 `order_item` 增加「已回补」标记，以明细为维度做幂等，再由定时任务扫描重试
+- [ ] **订单取消后把商品还回购物车**：下单时已删除购物车记录，当前取消订单不归还
+- [ ] 订单模块补充：用户手动取消订单的接口（复用 `cancelOrder` 的状态条件更新即可保证幂等）、订单详情、支付回调等后续状态流转（当前仅支持下单与列表查询）
+- [ ] **MQ 发送可靠性**：当前没有 publisher confirm / return 回调，消息发送失败只会随本地事务回滚，而库存已经被 Feign 扣减，需要补偿手段（本地消息表或定时对账）
+- [ ] 库存扣减 / 回补接口补充参数校验（当前 `count < 0` 已挡住负数，`count == 0` 是无意义的空更新，建议一并拒绝）
+- [ ] `ProductMapper#decreaseStock` / `#increaseStock` 为参数补 `@Param("id")` / `@Param("count")`（当前依赖编译参数名，显式标注更稳妥）
 - [ ] 管理后台补充订单管理页面（当前仅商品、分类、管理员管理）
 - [ ] 清理网关冗余路由：`upload-service`（`/upload` → admin-service）已无使用方，实际上传接口为 `POST /service/upload`（经 `service-service` 路由）
 - [ ] 分布式事务：当前采用「原子 SQL 扣减 + 失败少卖 + 后续回补」保证不超卖；若需强一致可引入 Seata AT 模式（依赖管理已锁定 `1.7.0-native-rc2`，需部署 TC 并在库中建 `undo_log` 表）

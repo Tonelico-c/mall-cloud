@@ -20,4 +20,7 @@ public interface ProductClient {
 
     @PutMapping("/product/decreaseStock")
     Result<Void> decreaseStock(@RequestParam("id") Long id, @RequestParam("count") Integer count);
+
+    @PutMapping("/product/increaseStock")
+    Result<Void> increaseStock(@RequestParam("id") Long id, @RequestParam("count") Integer count);
 }

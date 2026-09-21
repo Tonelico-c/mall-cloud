@@ -19,4 +19,6 @@ public interface IOrderService extends IService<Order> {
     void add(Order order);
 
     List<OrderVO> listItem();
+
+    void cancelOrder(Long orderNo);
 }

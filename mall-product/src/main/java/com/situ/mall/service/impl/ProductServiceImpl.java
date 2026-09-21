@@ -120,6 +120,22 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         }
     }
 
+    @Override
+    @CacheEvict(value = "productCache", key = "#id")
+    public void increaseStock(Long id, Integer count) {
+        Product product = productMapper.selectById(id);
+        if (product == null) {
+            throw new ServiceException("商品不存在");
+        }
+        if(count < 0){
+            throw new ServiceException("数量不合法");
+        }
+        int result = productMapper.increaseStock(id, count);
+        if(result == 0){
+            throw new ServiceException("商品不存在");
+        }
+    }
+
 
     // @Override
     public Product selectById1(Long id) {

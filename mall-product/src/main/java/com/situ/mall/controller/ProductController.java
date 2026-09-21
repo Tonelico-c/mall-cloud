@@ -75,5 +75,10 @@ public class ProductController {
         productService.decreaseStock(id, count);
         return Result.ok("库存减少成功");
     }
+    @PutMapping("/increaseStock")
+    Result<?> increaseStock(@RequestParam("id") Long id, @RequestParam("count") Integer count){
+        productService.increaseStock(id, count);
+        return Result.ok("库存增加成功");
+    }
 }
 
