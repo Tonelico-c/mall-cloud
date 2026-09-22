@@ -76,7 +76,9 @@ public class AdminController {
         if (user == null) {
             return Result.error("用户不存在");
         }
-        if (!user.getPassword().equals(adminPasswordDTO.getOldPassword())) {
+        // 库里存的是 BCrypt 哈希，不能拿哈希和明文直接 equals 比较
+        // （BCrypt 每次加盐结果都不同，这样比永远不相等），必须用 matches 重新计算比对
+        if (!PasswordUtil.matches(adminPasswordDTO.getOldPassword(), user.getPassword())) {
             return Result.error("原密码错误");
         }
         Admin newUser =  new Admin();

@@ -13,6 +13,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -27,6 +28,15 @@ import java.util.List;
 @Service
 public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> implements ICategoryService {
 
+    /**
+     * 分类树缓存的 key。
+     * 读、写、失效三处必须统一引用这个常量：
+     * 之前读用的是 "categoryTree"、写用的是 "categoryVOTree"，两处不一致导致缓存永远不命中，
+     * 而且每次请求都往 categoryVOTree 这个 list 里追加数据，list 会无限增长。
+     * 抽成常量之后就不会再出现两处写法不一致的问题。
+     */
+    private static final String CATEGORY_TREE_KEY = "categoryTree";
+
     @Autowired
     private CategoryMapper categoryMapper;
 
@@ -37,17 +47,17 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
      * 查询商品分类的树形结构
      * <p>
      * 执行流程：
-     * 1. 优先从 Redis 缓存中读取分类树（key: "categoryTree"），命中则直接返回，避免访问数据库；
+     * 1. 优先从 Redis 缓存中读取分类树（key: CATEGORY_TREE_KEY），命中则直接返回，避免访问数据库；
      * 2. 若缓存未命中（为空），则查询数据库中全部分类（按 sort 字段升序排列），
      *    将实体 Category 转换为 CategoryVO 后构建树形结构；
-     * 3. 将构建好的分类树写入 Redis 缓存（key: "categoryVOTree"），供下次查询使用。
+     * 3. 将构建好的分类树写入 Redis 缓存（key: CATEGORY_TREE_KEY），供下次查询使用。
      *
      * @return 分类树形结构列表，只包含顶级分类（parentId = 0），子分类挂载在 children 属性中
      */
     @Override
     public List<CategoryVO> selectCategoryTree() {
         // 先从Redis中获取分类树（range(0, -1) 表示取出该 list 中的所有元素）
-        List<CategoryVO> categoryVOTree = redisTemplate.opsForList().range("categoryTree", 0, -1);
+        List<CategoryVO> categoryVOTree = redisTemplate.opsForList().range(CATEGORY_TREE_KEY, 0, -1);
         // 缓存未命中，回源数据库查询并重建分类树
         if (CollectionUtils.isEmpty(categoryVOTree)) {
             // 构造查询条件：按 sort 字段升序，保证分类展示顺序正确
@@ -65,7 +75,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
             categoryVOTree = buildTree(categoryVOList);
 
             // 将分类树写入 Redis 缓存，下次查询可直接命中
-            redisTemplate.opsForList().rightPushAll("categoryVOTree", categoryVOTree);
+            redisTemplate.opsForList().rightPushAll(CATEGORY_TREE_KEY, categoryVOTree);
+            // 加一个过期时间兜底：万一某次改库没走到失效逻辑，缓存也能自己恢复，不会长期脏读
+            redisTemplate.expire(CATEGORY_TREE_KEY, 1, TimeUnit.HOURS);
         }
 
         return categoryVOTree;
@@ -74,7 +86,29 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     @Override
     public void add(Category category) {
         categoryMapper.insert(category);
-        redisTemplate.delete("categoryTree");
+        // 分类树变了，删掉缓存，下次查询时重建
+        redisTemplate.delete(CATEGORY_TREE_KEY);
+    }
+
+    /**
+     * 修改分类
+     * <p>
+     * 缓存里存的是整棵树，一次修改可能影响层级或排序，所以不做增量更新，
+     * 直接删掉缓存让它下次查询时整体重建。
+     */
+    @Override
+    public void update(Category category) {
+        updateById(category);
+        redisTemplate.delete(CATEGORY_TREE_KEY);
+    }
+
+    /**
+     * 删除分类（逻辑删除），同样要失效分类树缓存
+     */
+    @Override
+    public void deleteById(Long id) {
+        removeById(id);
+        redisTemplate.delete(CATEGORY_TREE_KEY);
     }
 
     /**

@@ -71,7 +71,8 @@ public class CategoryController {
     @PutMapping("/{id}")
     public Result update(@PathVariable Long id, @RequestBody Category category) {
         category.setId(id);
-        categoryService.updateById(category);
+        // 走 service 的 update，改了分类要顺带失效分类树缓存
+        categoryService.update(category);
         return Result.ok("更新成功");
     }
 
@@ -81,7 +82,8 @@ public class CategoryController {
      */
     @DeleteMapping("/{id}")
     public Result deleteById(@PathVariable Long id) {
-        categoryService.removeById(id);
+        // 走 service 的 deleteById，删了分类要顺带失效分类树缓存
+        categoryService.deleteById(id);
         return Result.ok("删除成功");
     }
 }
