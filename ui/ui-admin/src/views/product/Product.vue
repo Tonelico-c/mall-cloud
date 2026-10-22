@@ -5,6 +5,7 @@
   import {Delete, Edit, Plus, Search, Refresh} from '@element-plus/icons-vue'
   import {useTokenStore} from '@/store/token.js'
   import categoryApi from "@/api/category/category.js";
+  import WangEditor from "@/views/WangEditor.vue";
   const tokenStore = useTokenStore();
 
   //表格数据
@@ -172,6 +173,9 @@
     removeEmptyChildren(categoryTree.value)
   })
 
+  const onEditorChange = (detail) => {
+    product.value.detail = detail
+  }
 </script>
 
 <template>
@@ -256,7 +260,7 @@
     </div>
   </el-card>
   <!--添加、编辑弹出框-->
-  <el-dialog v-model="dialogFormVisible" :title="title" width="500" :lock-scroll="false" :close-on-click-modal="false">
+  <el-dialog v-model="dialogFormVisible" :title="title" width="900" :lock-scroll="false" :close-on-click-modal="false">
     <el-form :model="product">
       <el-form-item label="商品名称" :label-width="80">
         <el-input v-model="product.name" autocomplete="off" />
@@ -299,7 +303,11 @@
         </el-upload>
       </el-form-item>
       <el-form-item label="商品详情" :label-width="80">
-        <el-input v-model="product.detail" type="textarea" :rows="4" autocomplete="off" />
+        <!--富文本编辑器：内容通过 getEditorContent 事件同步回 product.detail-->
+        <WangEditor
+            :initValue="product.detail"
+            v-if="dialogFormVisible"
+            @getEditorContent="onEditorChange"></WangEditor>
       </el-form-item>
     </el-form>
     <template #footer>

@@ -20,6 +20,7 @@
         <module>mall-cart</module>
         <module>mall-shipping</module>
         <module>mall-order</module>
+        <module>mall-seckill</module>
     </modules>
 
     <!-- 指定父工程 -->

@@ -12,6 +12,10 @@ const userApi = {
     //修改个人信息
     update(user) {
         return request.put("/user", user)
+    },
+    //修改密码：校验原密码，成功后需重新登录 {oldPassword, newPassword}
+    resetPassword(userPasswordDTO) {
+        return request.put("/user/resetPassword", userPasswordDTO)
     }
 }
 

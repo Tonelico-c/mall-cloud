@@ -139,22 +139,13 @@
   // 菜单  用户管理， 分类管理， 商品管理
   const menuData = ref([
     {name: '管理员管理', icon: 'Notebook', path: "/admin"},
-    {
-      name: '商品中心', icon: 'TrendCharts', children: [
-        {name: '商品管理', icon: 'TrendCharts', path: "/product"},
-        {name: '分类管理', icon: 'DataAnalysis', path: "/category"},
-      ]
-    },
-    {
-      name: '权限管理', icon: 'GobletFull', children: [
-        {name: '管理员管理', icon: 'GobletSquareFull', path: "/admin"},
-        {name: '角色管理', icon: 'User', path: "/role"},
-        {name: '权限管理', icon: 'Lock', path: "/permission"},
-      ]
-    },
+    {name: '商品管理', icon: 'TrendCharts', path: "/product"},
+    {name: '分类管理', icon: 'DataAnalysis', path: "/category"},
+    {name: '订单管理', icon: 'List', path: "/order"},
+    {name: '用户管理', icon: 'User', path: "/user"},
     {
       name: '个人中心', icon: 'User', children: [
-        {name: '基本资料', icon: 'Document', path: "/admin/info"},
+        {name: '基本资料', icon: 'Document', path: "/admin/info"}
       ]
     }
   ]);

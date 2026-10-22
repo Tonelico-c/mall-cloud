@@ -1,7 +1,7 @@
 <script setup>
   import {computed, onMounted} from 'vue'
   import {useRouter} from 'vue-router'
-  import {User, Location, Tickets, SwitchButton, ArrowRight} from '@element-plus/icons-vue'
+  import {User, Location, Tickets, SwitchButton, ArrowRight, Lock} from '@element-plus/icons-vue'
   import {ElMessage, ElMessageBox} from 'element-plus'
   import userApi from '@/api/user/user.js'
   import {useTokenStore} from '@/store/token.js'
@@ -28,6 +28,7 @@
   //菜单配置
   const menus = [
     {title: '个人信息', icon: User, path: '/user/profile'},
+    {title: '修改密码', icon: Lock, path: '/user/password'},
     {title: '收货地址', icon: Location, path: '/shipping'},
     {title: '我的订单', icon: Tickets, path: '/order'}
   ]

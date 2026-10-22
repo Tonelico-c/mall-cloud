@@ -47,3 +47,7 @@ spring:
           uri: lb://shipping-service
           predicates:
             - Path=/shipping/**
+        - id: seckill-service
+          uri: lb://seckill-service
+          predicates:
+            - Path=/seckill/**

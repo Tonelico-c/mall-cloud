@@ -1,9 +1,9 @@
 package com.situ.mall.controller;
 
-
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.situ.mall.annotation.MyLog;
 import com.situ.mall.pojo.dto.LoginInfoDTO;
+import com.situ.mall.pojo.dto.UserPasswordDTO;
 import com.situ.mall.pojo.entity.User;
 import com.situ.mall.service.IUserService;
 import com.situ.mall.utils.JwtUtil;
@@ -21,7 +21,7 @@ import java.util.Map;
 
 /**
  * <p>
- *  前端控制器
+ * 前端控制器
  * </p>
  *
  * @author Gao
@@ -38,36 +38,37 @@ public class UserController {
 
     @MyLog(module = "用户: 登录")
     @PostMapping("/login")
-    public Result<String> login(@RequestBody LoginInfoDTO loginInfoDTO){
+    public Result<String> login(@RequestBody LoginInfoDTO loginInfoDTO) {
         String captcha = (String) redisTemplate.opsForValue().get("captcha:" + loginInfoDTO.getUuid());
         if (!StringUtils.hasText(captcha)) {
             return Result.error("验证码已过期");
-        }if(!captcha.equals(loginInfoDTO.getCaptcha())){
+        }
+        if (!captcha.equals(loginInfoDTO.getCaptcha())) {
             return Result.error("验证码错误");
         }
-        
+
         User dbUser = userService.getOne(new LambdaQueryWrapper<User>()
                 .eq(User::getName, loginInfoDTO.getName()));
-        if(dbUser == null){
+        if (dbUser == null) {
             return Result.error("用户名不存在");
         }
-        if(!PasswordUtil.matches(loginInfoDTO.getPassword(), dbUser.getPassword())){
+        if (!PasswordUtil.matches(loginInfoDTO.getPassword(), dbUser.getPassword())) {
             return Result.error("密码错误");
         }
-        if(dbUser.getStatus() == 0){
+        if (dbUser.getStatus() == 0) {
             return Result.error("账号已禁用");
         }
         Map<String, Object> map = new HashMap<>();
         map.put("id", dbUser.getId());
         map.put("name", dbUser.getName());
         String token = JwtUtil.createToken(map);
-        return Result.ok("登录成功",token);
+        return Result.ok("登录成功", token);
     }
 
     @GetMapping("/userInfo")
-    public Result<User> userInfo(){
+    public Result<User> userInfo() {
         Map<String, Object> map = LoginContext.getLoginInfo();
-        if(map == null){
+        if (map == null) {
             return Result.error("用户未登录");
         }
         Long id = (Long) map.get("id");
@@ -78,11 +79,31 @@ public class UserController {
 
     @MyLog(module = "用户: 修改信息")
     @PutMapping
-    public Result update(@RequestBody User user){
+    public Result update(@RequestBody User user) {
         Long id = (Long) LoginContext.getLoginInfo().get("id");
         user.setId(id);
         userService.updateById(user);
         return Result.ok("修改成功");
     }
-}
 
+    // 修改密码：校验原密码，通过后更新为新密码的BCrypt哈希
+    @MyLog(module = "用户: 修改密码")
+    @PutMapping("/resetPassword")
+    public Result resetPassword(@RequestBody UserPasswordDTO userPasswordDTO) {
+        Long id = (Long) LoginContext.getLoginInfo().get("id");
+        User dbUser = userService.getById(id);
+        if (dbUser == null) {
+            return Result.error("用户不存在");
+        }
+        // 库里存的是 BCrypt 哈希，不能拿哈希和明文直接 equals 比较
+        // （BCrypt 每次加盐结果都不同，这样比永远不相等），必须用 matches 重新计算比对
+        if (!PasswordUtil.matches(userPasswordDTO.getOldPassword(), dbUser.getPassword())) {
+            return Result.error("原密码错误");
+        }
+        User newUser = new User();
+        newUser.setId(dbUser.getId());
+        newUser.setPassword(PasswordUtil.hash(userPasswordDTO.getNewPassword()));
+        userService.updateById(newUser);
+        return Result.ok("密码修改成功");
+    }
+}

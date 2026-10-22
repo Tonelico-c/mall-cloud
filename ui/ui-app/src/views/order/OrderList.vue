@@ -2,6 +2,7 @@
   import {ref, onMounted} from 'vue'
   import {useRouter} from 'vue-router'
   import {Loading} from '@element-plus/icons-vue'
+  import {ElMessage, ElMessageBox} from 'element-plus'
   import orderApi from '@/api/order/order.js'
   import PageHeader from '@/components/PageHeader.vue'
   import {formatImage, formatPrice} from '@/utils/format.js'
@@ -23,6 +24,11 @@
   const loading = ref(true)
 
   onMounted(() => {
+    loadList()
+  })
+
+  const loadList = () => {
+    loading.value = true
     orderApi.list().then(result => {
       if (result.code === 1) {
         list.value = result.data || []
@@ -31,7 +37,55 @@
     }).catch(() => {
       loading.value = false
     })
-  })
+  }
+
+  //去支付：弹出确认弹窗，确认后订单状态由"未支付"变为"已支付"
+  const pay = (order) => {
+    ElMessageBox.confirm(
+        `您确认支付 ${formatPrice(order.payment)} 么?`,
+        '支付确认',
+        {
+          confirmButtonText: '确认支付',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+    ).then(() => {
+      orderApi.pay(order.orderNo).then(result => {
+        if (result.code === 1) {
+          ElMessage.success(result.msg)
+          loadList()
+        } else {
+          ElMessage.error(result.msg)
+        }
+      })
+    }).catch(() => {
+      //点了取消会走这里，兜住避免控制台 unhandled rejection
+    })
+  }
+
+  //确认收货：订单状态由"已发货"变为"交易成功"
+  const receive = (order) => {
+    ElMessageBox.confirm(
+        '您确认已经收到商品么?',
+        '提示',
+        {
+          confirmButtonText: '确认',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+    ).then(() => {
+      orderApi.receive(order.orderNo).then(result => {
+        if (result.code === 1) {
+          ElMessage.success(result.msg)
+          loadList()
+        } else {
+          ElMessage.error(result.msg)
+        }
+      })
+    }).catch(() => {
+      //点了取消会走这里，兜住避免控制台 unhandled rejection
+    })
+  }
 
   const toHome = () => router.push('/home')
 </script>
@@ -75,7 +129,25 @@
         <!-- 订单底部：下单时间 + 实付金额 -->
         <div class="order-footer">
           <span class="order-time">{{ order.createTime }}</span>
-          <span class="order-pay">实付 <span class="price">{{ formatPrice(order.payment) }}</span></span>
+          <div class="order-actions">
+            <span class="order-pay">实付 <span class="price">{{ formatPrice(order.payment) }}</span></span>
+            <!-- 未支付的订单可以去支付 -->
+            <el-button
+                v-if="order.status === 1"
+                type="danger"
+                size="small"
+                round
+                @click="pay(order)">去支付
+            </el-button>
+            <!-- 已发货的订单才可以确认收货 -->
+            <el-button
+                v-if="order.status === 3"
+                type="primary"
+                size="small"
+                round
+                @click="receive(order)">确认收货
+            </el-button>
+          </div>
         </div>
       </div>
     </div>
@@ -166,6 +238,13 @@
     align-items: baseline;
     font-size: 13px;
     color: #666;
+  }
+
+  /* 实付金额 + 确认收货按钮 */
+  .order-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
   .order-pay .price {
